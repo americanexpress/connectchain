@@ -1,0 +1,21 @@
+# ignore all .crt files from all directories
+**/*.crt
+
+# ignore .env files from all directories
+**/.env
+
+# ignore all directories that end in .egg-info
+**/*.egg-info/
+
+# ignore build directories
+build/
+dist/
+.idea
+**/__pycache__/
+
+# ignore all tmp/ directories
+**/tmp/
+**/mock_cofig.yml
+.pylint
+
+connectchain/config/config.yml
