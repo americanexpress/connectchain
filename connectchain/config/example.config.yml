@@ -1,0 +1,64 @@
+# Copyright 2023 American Express Travel Related Services Company, Inc.
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License
+# is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+# or implied. See the License for the specific language governing permissions and limitations under
+# the License.
+eas:
+    url: # Enterprise Auth Service provider URL
+    scope: [
+        # EAS token scope. Example:
+        # /domain/api/v1/route1/**::get,
+        # /domain/api/v1/route1/**::post,
+        ]
+    originator_source: # Enterprise Auth Service originator source
+    id_key: CONSUMER_ID1
+    secret_key: CONSUMER_SECRET1
+    token_refresh_interval: 60
+cert:
+    cert_path: # Cert download URL
+    cert_name: # Cert name. Example: ./MyCert.crt (match with `.env` REQUESTS_CA_BUNDLE)
+    cert_size: # Example: 1938
+models:
+    # gpt-3.5
+    '1':
+        provider: openai
+        type: chat
+        engine: gpt-35
+        model_name: gpt-35-turbo-16k
+        api_version: # Example: 2023-07-01-preview
+        api_base: # Example: https://my_host.com/domain/api/v1/route1
+    # gpt-4
+    '2':
+        eas:
+            id_key: CONSUMER_ID2
+            secret_key: CONSUMER_SECRET2
+            scope: [
+                # EAS token scope. Example:
+                # /domain/api/v1/route2/**::get,
+                # /domain/api/v1/route2/**::post,
+                ]
+        provider: openai
+        type: chat
+        engine: gpt-4
+        model_name: gpt-4
+        api_version: # Example: 2023-07-01-preview
+        api_base: # Example: https://my_host.com/domain/api/v1/route2
+    # DEFINING NEW MODELS:
+    #   - `eas` or `cert` can be defined *OPTIONALLY* to override the defaults if they are not applicable.
+    #   - `provider` must be supported provider in `connectchain/connectchain/lcel/model.py` (e.g. if not openai, implement support)
+    #   - `type` must be supported by provider in `connectchain/connectchain/lcel/model.py` (e.g. openai support chat and azure)
+    # EXAMPLE for new model configuration:
+    # foo:
+    #     eas:
+    #         ... eas options ...
+    #     cert:
+    #         ... cert options ...
+    #     provider: my_provider
+    #     type: my_type
+    #     ... continue with engine, model_name, api_version, api_base ...
