@@ -16,31 +16,18 @@ from langchain.agents import AgentType
 from langchain.agents.agent_toolkits import create_python_agent
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI as AzureOpenAI
 from langchain.tools import PythonREPLTool
-from connectchain.utils import get_token_from_env, Config
+from connectchain.lcel import model
 
 # pylint: disable=duplicate-code
 if __name__ == '__main__':
     load_dotenv(find_dotenv())
-    auth_token = get_token_from_env()
-    model_config = Config.from_env().models['1']
 
     PROMPT_TEMPLATE = "Tell me about {topic}"
     prompt = PromptTemplate(
         input_variables=["adjective"], template=PROMPT_TEMPLATE
     )
-
-    llm = AzureOpenAI(
-        model_name=model_config.model_name,
-        openai_api_key=auth_token,
-        openai_api_base=model_config.api_base,
-        model_kwargs={
-            "engine": model_config.engine,
-            "api_version": model_config.api_version,
-            "api_type": "azure"
-        })
-
+    llm = model('1')
     chain = LLMChain(llm=llm, prompt=prompt)
     output = chain.run('computer science')
     print(output)

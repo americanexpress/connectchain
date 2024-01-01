@@ -20,6 +20,9 @@ eas:
     id_key: CONSUMER_ID1
     secret_key: CONSUMER_SECRET1
     token_refresh_interval: 60
+proxy:
+    host: ~ # Proxy host
+    port: ~ # Proxy port
 cert:
     cert_path: # Cert download URL
     cert_name: # Cert name. Example: ./MyCert.crt (match with `.env` REQUESTS_CA_BUNDLE)
@@ -50,7 +53,7 @@ models:
         api_version: # Example: 2023-07-01-preview
         api_base: # Example: https://my_host.com/domain/api/v1/route2
     # DEFINING NEW MODELS:
-    #   - `eas` or `cert` can be defined *OPTIONALLY* to override the defaults if they are not applicable.
+    #   - `eas`, `proxy` and `cert` can be defined *OPTIONALLY* to override the defaults if they are not applicable.
     #   - `provider` must be supported provider in `connectchain/connectchain/lcel/model.py` (e.g. if not openai, implement support)
     #   - `type` must be supported by provider in `connectchain/connectchain/lcel/model.py` (e.g. openai support chat and azure)
     # EXAMPLE for new model configuration:

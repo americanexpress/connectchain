@@ -15,9 +15,8 @@ Example usage for the ValidLLMChain class.
 
 from dotenv import load_dotenv, find_dotenv
 from langchain.prompts import PromptTemplate
-from langchain.chat_models import ChatOpenAI as AzureOpenAI
 from connectchain.chains import ValidLLMChain
-from connectchain.utils import get_token_from_env, Config
+from connectchain.lcel import model
 
 class OperationNotPermittedException(BaseException):
     """Operation Not Permitted Exception"""
@@ -32,25 +31,13 @@ def my_sanitizer(query: str) -> str:
 #pylint: disable=duplicate-code
 if __name__ == '__main__':
     load_dotenv(find_dotenv())
-    auth_token = get_token_from_env()
-    model_config = Config.from_env().models['1']
 
     PROMPT_TEMPLATE = "Tell me about {adjective} animals"
     prompt = PromptTemplate(
         input_variables=["adjective"], template=PROMPT_TEMPLATE
     )
 
-    llm = AzureOpenAI(
-        model_name=model_config.model_name,
-        openai_api_key=auth_token,
-        openai_api_base=model_config.api_base,
-        model_kwargs={
-            "engine": model_config.engine,
-            "api_version": model_config.api_version,
-            "api_type": "azure"
-        })
-
-    chain = ValidLLMChain(llm=llm, prompt=prompt, output_sanitizer=my_sanitizer)
+    chain = ValidLLMChain(llm=model('1'), prompt=prompt, output_sanitizer=my_sanitizer)
 
     output = chain.run('cute and cuddly')
     print(output)

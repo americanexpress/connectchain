@@ -16,6 +16,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.llms.openai import AzureOpenAI
 from langchain.schema.language_model import BaseLanguageModel
 from connectchain.utils import Config, get_token_from_env, SessionMap
+from connectchain.utils.llm_proxy_wrapper import ProxiedLLM
 
 class LCELModelException(BaseException):
     """Base exception for the LCEL model"""
@@ -38,9 +39,17 @@ def _get_model_(index):
     model_config = models[index]
     if model_config is None:
         raise LCELModelException(f'Model config at index "{index}" is not defined')
+    model_instance = None
     if model_config.provider == 'openai':
-        return _get_openai_model_(index, config, model_config)
-    raise LCELModelException('Not implemented')
+        model_instance = _get_openai_model_(index, config, model_config)
+    if model_instance is None:
+        raise LCELModelException('Not implemented')
+    proxy_config = model_config.proxy
+    if proxy_config is None:
+        proxy_config = config.proxy
+    if proxy_config is not None:
+        model = ProxiedLLM(model_instance, proxy_config)
+    return model
 
 def _get_openai_model_(index, config, model_config):
     """Get the OpenAI LLM instance"""

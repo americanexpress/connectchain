@@ -14,19 +14,15 @@ import re
 
 from dotenv import load_dotenv, find_dotenv
 from langchain.chains import LLMChain
-from langchain.chat_models import ChatOpenAI as AzureOpenAI
-from connectchain.utils import get_token_from_env, Config
 from connectchain.prompts import ValidPromptTemplate
+from connectchain.lcel import model
 
 
 if __name__ == '__main__':
     load_dotenv(find_dotenv())
-    auth_token = get_token_from_env()
-    model_config = Config.from_env().models['1']
 
     class OperationNotPermittedException(Exception):
         """Operation Not Permitted Exception"""
-
 
     def my_sanitizer(query: str) -> str:
         """Sample sanitizer"""
@@ -38,8 +34,6 @@ if __name__ == '__main__':
 
         return query
 
-
-
     prompt_template = "Tell me about {adjective} books"
     prompt = ValidPromptTemplate(
         output_sanitizer=my_sanitizer,
@@ -47,17 +41,7 @@ if __name__ == '__main__':
         template=prompt_template
     )
 
-    llm = AzureOpenAI(
-        model_name=model_config.model_name,
-        openai_api_key=auth_token,
-        openai_api_base=model_config.api_base,
-        model_kwargs={
-            "engine": model_config.engine,
-            "api_version": model_config.api_version,
-            "api_type": "azure"
-        })
-
-    chain = LLMChain(llm=llm, prompt=prompt)
+    chain = LLMChain(llm=model('1'), prompt=prompt)
 
     output = chain.run('history and science')
     print(output)

@@ -3,6 +3,7 @@ A collection of useful utilities for Generative AI-enabled applications to bridg
 
 Primary objectives include:
 * A login utility for API-based LLM services that integrates with Enterprise Auth Service (EAS). Simplified generation of the JWT token, which is then passed to the modeling service provider.
+* Support for configuration-based outbound proxy support at the model level to allow integration with enterprise-level security requirements.
 * A set of tools to make sure the generated prompts are safe to execute. This is done by adding hooks to the existing langchain packages.
 
 ## Installation
@@ -39,7 +40,7 @@ You can have multiple model configurations defined in the `config.yml`. These ar
 chain = prompt | model('2')
 ```
 
-`eas` and `cert` sections of the `config.yml` can be overriden by model definitions. To do this, simply define those sections in a model config (again in the `config.yml`) and re-define any values you want to override. For example, if you want to use different `eas` options for a model, you can define it as follows:
+_Optionally_ `eas`, `proxy` and `cert` sections of the `config.yml` can be overriden by model definitions. To do this, simply define those sections in a model config (again in the `config.yml`) and re-define any values you want to override. For example, if you want to override all three options for a model, you can define it as follows:
 
 ```yaml
 models:
@@ -50,6 +51,13 @@ models:
       scope: [
         # ...
       ]
+    cert:
+        cert_path: /path/to/cert
+        cert_name: model_specific_cert.crt
+        cert_size: 2048
+    proxy:
+        host: proxy.foo.com
+        port: 8080
     # ... continue the model configuration
 ```
 
