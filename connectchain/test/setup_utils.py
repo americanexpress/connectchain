@@ -9,6 +9,8 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
+from contextlib import AbstractContextManager
+from unittest.mock import Mock
 from connectchain.utils.config import Config, ConfigWrapper
 
 class MockConfig(Config):
@@ -54,3 +56,16 @@ def get_mock_config(data=None):
     if data is None:
         data = { x: { **y } for x, y in MOCK_DATA.items() }
     return MockConfig(data)
+
+class _TestContextManager(AbstractContextManager):
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __exit__(self, *args):
+        pass
+
+def get_mock_ctx_manager():
+    mock_ctx = Mock(_TestContextManager)
+    mock_ctx.__enter__ = Mock(return_value=mock_ctx)
+    mock_ctx.__exit__ = Mock(return_value=None)
+    return mock_ctx

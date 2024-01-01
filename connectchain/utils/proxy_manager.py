@@ -9,6 +9,7 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
+"""Proxy Manager Mixin"""
 import requests
 import requests.adapters
 from contextlib import contextmanager
@@ -57,5 +58,5 @@ class ProxyManager():
     @contextmanager
     def configure_proxy_async(self):
         """Configure the proxy for `aiohttp` [@see https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support]"""
-        _logger_.warn('Async proxy support is not thread safe')
+        _logger_.warning('Async proxy support is not thread safe')
         return self._patch_session_proxies_()

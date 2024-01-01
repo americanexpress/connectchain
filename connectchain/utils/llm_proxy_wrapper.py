@@ -9,6 +9,7 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
+"""Proxied LLM Utilities"""
 import functools
 from .proxy_manager import ProxyManager, ProxyConfig
 from langchain.llms import BaseLLM
@@ -50,7 +51,7 @@ def _sync_proxy_(func, proxy_manager: ProxyManager):
 def _async_proxy_(func, proxy_manager: ProxyManager):
     @functools.wraps(func)
     async def wrapper(self, *args, **kwargs):
-        async with proxy_manager.configure_proxy_async():
+        with proxy_manager.configure_proxy_async():
             return await func(self, *args, **kwargs)
     return wrapper
 

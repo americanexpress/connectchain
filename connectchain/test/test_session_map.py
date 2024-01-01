@@ -9,14 +9,14 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-"""Unit testing for PortableOrchestrator class"""
+"""Unit testing for SessionMap class"""
 import unittest
 from connectchain.utils import SessionMap
 
 from .setup_utils import get_mock_config, wrap_model_config
 
 class TestSessionMap(unittest.TestCase):
-    """Unit testing the model LCEL method """
+    """Unit testing the SessionMap """
 
     def test_uuid_from_config(self):
         """Test that a PortableOrchestrator instance can be built with the default LLM"""

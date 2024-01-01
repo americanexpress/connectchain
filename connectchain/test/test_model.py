@@ -84,3 +84,54 @@ class TestModel(unittest.TestCase):
         test_model = model()
         test_model2 = model()
         self.assertIs(test_model, test_model2)
+
+    @patch('connectchain.lcel.model.wrap_llm_with_proxy')
+    def test_model_configured_with_no_proxy(self, mock_wrap_with_proxy):
+        self.setUpWithConfig(get_mock_config())
+        model()
+        mock_wrap_with_proxy.assert_not_called()
+
+    @patch('connectchain.lcel.model.wrap_llm_with_proxy')
+    def test_model_configured_with_global_proxy(self, mock_wrap_with_proxy:Mock):
+        test_config = get_mock_config()
+        test_proxy_config = { 'host': 'localhost', 'port': 8080 }
+        test_config.data['proxy'] = test_proxy_config
+        self.setUpWithConfig(test_config)
+        model_instance = model()
+        mock_wrap_with_proxy.assert_called_once()
+        self.assertIs(model_instance, mock_wrap_with_proxy.call_args[0][0])
+        used_proxy_config = mock_wrap_with_proxy.call_args[0][1]
+        self.assertEqual(used_proxy_config['host'], test_proxy_config['host'])
+        self.assertEqual(used_proxy_config['port'], test_proxy_config['port'])
+
+    @patch('connectchain.lcel.model.wrap_llm_with_proxy')
+    def test_model_configured_with_model_only_proxy(self, mock_wrap_with_proxy:Mock):
+        test_config = get_mock_config()
+        test_proxy_config = { 'host': 'localhost', 'port': 8080 }
+        # required to not modify dict instance
+        test_config.data['models']['1'] = { **test_config.data['models']['1'] }
+        test_config.data['models']['1']['proxy'] = test_proxy_config
+        self.setUpWithConfig(test_config)
+        model_instance = model()
+        mock_wrap_with_proxy.assert_called_once()
+        self.assertIs(model_instance, mock_wrap_with_proxy.call_args[0][0])
+        used_proxy_config = mock_wrap_with_proxy.call_args[0][1]
+        self.assertEqual(used_proxy_config['host'], test_proxy_config['host'])
+        self.assertEqual(used_proxy_config['port'], test_proxy_config['port'])
+
+    @patch('connectchain.lcel.model.wrap_llm_with_proxy')
+    def test_model_configured_with_model_override_proxy(self, mock_wrap_with_proxy:Mock):
+        test_config = get_mock_config()
+        test_global_proxy_config = { 'host': 'localhost', 'port': 8080 }
+        test_model_proxy_config = { 'host': 'localhost', 'port': 8080 }
+        test_config.data['proxy'] = test_global_proxy_config
+        # required to not modify dict instance
+        test_config.data['models']['1'] = { **test_config.data['models']['1'] }
+        test_config.data['models']['1']['proxy'] = test_model_proxy_config
+        self.setUpWithConfig(test_config)
+        model_instance = model()
+        mock_wrap_with_proxy.assert_called_once()
+        self.assertIs(model_instance, mock_wrap_with_proxy.call_args[0][0])
+        used_proxy_config = mock_wrap_with_proxy.call_args[0][1]
+        self.assertEqual(used_proxy_config['host'], test_model_proxy_config['host'])
+        self.assertEqual(used_proxy_config['port'], test_model_proxy_config['port'])
