@@ -1,5 +1,5 @@
 # Connect Chain
-A collection of useful utilities for Generative AI-enabled applications to bridge the gap between enterprise-level needs and what is available in existing frameworks.
+An enterprise-grade, Generative AI framework and utilities for AI-enabled applications. `connectchain` is designed to bridge the gap between enterprise needs and what is available in existing frameworks.
 
 Primary objectives include:
 * A login utility for API-based LLM services that integrates with Enterprise Auth Service (EAS). Simplified generation of the JWT token, which is then passed to the modeling service provider.
