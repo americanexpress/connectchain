@@ -46,8 +46,8 @@ _Optionally_ `eas`, `proxy` and `cert` sections of the `config.yml` can be overr
 models:
   foo:
     eas:
-      id_key: CONSUMER_ID_FOO
-      secret_key: CONSUMER_SECRET_BAR
+      id_key: ... # Env key for id
+      secret_key: ... # Env key for secret
       scope: [
         # ...
       ]
