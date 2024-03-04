@@ -11,19 +11,30 @@
 # the License.
 """
 Example usage for the ValidLLMChain class.
+
+IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+as a reference for production code. The features are experimental and may not be suitable for
+use in sensitive environments or without additional safeguards and testing.
+
+Any use of this code is at your own risk.
 """
 
 from dotenv import load_dotenv, find_dotenv
 from langchain.prompts import PromptTemplate
 from connectchain.chains import ValidLLMChain
 from connectchain.lcel import model
-
-class OperationNotPermittedException(BaseException):
-    """Operation Not Permitted Exception"""
+from connectchain.utils.exceptions import OperationNotPermittedException
 
 
 def my_sanitizer(query: str) -> str:
-    """Sample sanitizer"""
+    """Sample sanitizer
+
+    IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+    as a reference for production code. The features are experimental and may not be suitable for
+    use in sensitive environments or without additional safeguards and testing.
+
+    Any use of this code is at your own risk.
+    """
     if query == "BADWORD":
         raise OperationNotPermittedException(f"Illegal execution detected: {query}")
     return query

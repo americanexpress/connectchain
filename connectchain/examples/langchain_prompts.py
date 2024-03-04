@@ -9,23 +9,35 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-"""Example for using a custom sanitizer"""
+"""Example for using a custom sanitizer.
+
+IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+as a reference for production code. The features are experimental and may not be suitable for
+use in sensitive environments or without additional safeguards and testing.
+
+Any use of this code is at your own risk.
+"""
 import re
 
 from dotenv import load_dotenv, find_dotenv
 from langchain.chains import LLMChain
 from connectchain.prompts import ValidPromptTemplate
 from connectchain.lcel import model
+from connectchain.utils.exceptions import OperationNotPermittedException
 
 
 if __name__ == '__main__':
     load_dotenv(find_dotenv())
 
-    class OperationNotPermittedException(Exception):
-        """Operation Not Permitted Exception"""
+    def example_sanitizer(query: str) -> str:
+        """Sample sanitizer
 
-    def my_sanitizer(query: str) -> str:
-        """Sample sanitizer"""
+        IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+        as a reference for production code. The features are experimental and may not be suitable for
+        use in sensitive environments or without additional safeguards and testing.
+
+        Any use of this code is at your own risk.
+        """
         pattern = r'BADWORD'
 
         if re.search(pattern, query):
@@ -36,7 +48,7 @@ if __name__ == '__main__':
 
     prompt_template = "Tell me about {adjective} books"
     prompt = ValidPromptTemplate(
-        output_sanitizer=my_sanitizer,
+        output_sanitizer=example_sanitizer,
         input_variables=["adjective"],
         template=prompt_template
     )

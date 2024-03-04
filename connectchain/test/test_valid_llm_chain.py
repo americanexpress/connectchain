@@ -16,7 +16,7 @@ from langchain.chains import LLMChain
 from langchain.llms.openai import OpenAIChat
 from langchain.prompts import PromptTemplate
 from connectchain.chains import ValidLLMChain
-from .test_exception import OperationNotPermittedException
+from connectchain.utils.exceptions import OperationNotPermittedException
 
 
 def my_sanitizer(query: str) -> str:

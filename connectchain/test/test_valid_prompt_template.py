@@ -15,11 +15,7 @@ This module contains unit tests for the ValidPromptTemplate class.
 from unittest import TestCase
 import re
 from connectchain.prompts import ValidPromptTemplate
-
-
-class OperationNotPermittedException(Exception):
-    """Operation Not Permitted Exception"""
-
+from connectchain.utils.exceptions import OperationNotPermittedException
 
 class TestValidPromptTemplate(TestCase):
     """Test Class for ValidPromptTemplate"""

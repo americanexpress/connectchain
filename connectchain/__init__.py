@@ -10,3 +10,21 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 """Init file for the connectchain package"""
+from .utils.exceptions import ConnectChainNoAccessException
+from langchain.chains.api.base import APIChain
+
+# Disable langchain APIChain
+def override(self, *args, **kwargs):
+    raise ConnectChainNoAccessException("Operation not permitted")
+
+APIChain.__init__ = override
+APIChain.from_llm_and_api_docs = override
+APIChain.run = override
+APIChain.arun = override
+APIChain.invoke = override
+APIChain.ainvoke = override
+APIChain.apply = override
+APIChain.batch = override
+APIChain.abatch = override
+APIChain._call = override
+APIChain._acall = override

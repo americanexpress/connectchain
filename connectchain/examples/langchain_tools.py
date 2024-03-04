@@ -9,7 +9,14 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-"""Example for using a code generation tool"""
+"""Example for using a code generation tool.
+
+IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+as a reference for production code. The features are experimental and may not be suitable for
+use in sensitive environments or without additional safeguards and testing.
+
+Any use of this code is at your own risk.
+"""
 #pylint: disable=no-name-in-module
 import re
 from dotenv import load_dotenv, find_dotenv
@@ -18,7 +25,7 @@ from langchain.agents.agent_toolkits import create_python_agent
 from langchain.chat_models import ChatOpenAI as AzureOpenAI
 from connectchain.tools import ValidPythonREPLTool
 from connectchain.utils import get_token_from_env, Config
-
+from connectchain.utils.exceptions import OperationNotPermittedException
 
 if __name__ == '__main__':
     load_dotenv(find_dotenv())
@@ -35,15 +42,15 @@ if __name__ == '__main__':
             "api_type": "azure"
         })
 
-    """Example for using a custom sanitizer"""
-
-
-    class OperationNotPermittedException(Exception):
-        """Operation Not Permitted Exception"""
-
-
     def simple_sanitizer(query: str) -> str:
-        """Sample sanitizer"""
+        """Sample sanitizer
+        
+        IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+        as a reference for production code. The features are experimental and may not be suitable for
+        use in sensitive environments or without additional safeguards and testing.
+
+        Any use of this code is at your own risk.
+        """
         query = re.sub(r"^(\s|`)*(?i:python)?\s*", "", query)
         query = re.sub(r"(\s|`)*$", "", query)
 

@@ -4,7 +4,7 @@ An enterprise-grade, Generative AI framework and utilities for AI-enabled applic
 Primary objectives include:
 * A login utility for API-based LLM services that integrates with Enterprise Auth Service (EAS). Simplified generation of the JWT token, which is then passed to the modeling service provider.
 * Support for configuration-based outbound proxy support at the model level to allow integration with enterprise-level security requirements.
-* A set of tools to make sure the generated prompts are safe to execute. This is done by adding hooks to the existing langchain packages.
+* A set of tools to provide greater control over generated prompts. This is done by adding hooks to the existing langchain packages.
 
 ## Installation
 ```bash 
@@ -73,7 +73,7 @@ logger = PrintLogger()
 chain = prompt | logger.log() | model() | logger.log()
 ```
 
-There is a portable solution for the "regular" prompt template-based requests. It is portable, i.e. no need to directly import a model provider package (e.g. `openai`). It is also safe, i.e. the prompts are validated before being sent to the LLM.
+There is a portable solution for the "regular" prompt template-based requests. It is portable, i.e. no need to directly import a model provider package (e.g. `openai`). Additionally, prompts can be validated before being sent to the LLM.
 
 ```python
 from connectchain.orchestrators import PortableOrchestrator
@@ -114,16 +114,18 @@ llm = AzureOpenAI(
 chain = LLMChain(llm=llm, prompt=prompt)
 ```
 
-### `connectchain.prompts`: A package to generate safe prompts to LLM. Can define your own function to be called to verify the prompt is safe.
+### `connectchain.prompts`: A package to provide greater control over generated prompts before they are passed to the LLM by providing an entrypoint for sanitizer implementations.
 
 ```python
 from connectchain.prompts import ValidPromptTemplate
-
-class OperationNotPermittedException(Exception):
-    pass
-
+from connectchain.utils.exceptions import OperationNotPermittedException
 
 def my_sanitizer(query: str) -> str:
+    """IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+    as a reference for production code. The features are experimental and may not be suitable for
+    use in sensitive environments or without additional safeguards and testing.
+
+    Any use of this code is at your own risk."""
     pattern = r'BADWORD'
 
     if re.search(pattern, query):
@@ -147,14 +149,19 @@ print(output)
 
 ```
 ### `connectchain.chains`: An extension of the langchain chains.
-We add hooks to make sure only safe code is executed. Just as with prompts, you can define your own function to be called to verify the code is safe.
+We add hooks to improve control over code that is executed by providing an entrypoint for sanitizer implementations.
 
 ```python   
 from connectchain.chains import ValidLLMChain
 
 def my_sanitizer(query: str) -> str:
+    """IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+    as a reference for production code. The features are experimental and may not be suitable for
+    use in sensitive environments or without additional safeguards and testing.
+
+    Any use of this code is at your own risk."""
     # define your own logic here.
-    # for example, can call an API to check if the code is safe to execute
+    # for example, can call an API to verify the content of the code
     pass
 
 chain = ValidLLMChain(llm=llm, prompt=prompt, output_sanitizer=my_sanitizer)
@@ -170,14 +177,19 @@ except OperationNotPermittedException as e:
 ```
 
 ### `connectchain.tools`: An extension of the langchain tools. 
-We add hooks to make sure only safe code is executed. Just as is the case with the prompts, you can define your own function to be called to verify the code is safe.
+We add hooks to improve control over code that is executed by providing an entrypoint for sanitizer implementations.
 
 ```python
 from connectchain.tools import ValidPythonREPLTool
 
 def my_sanitizer(query: str) -> str:
+    """IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+    as a reference for production code. The features are experimental and may not be suitable for
+    use in sensitive environments or without additional safeguards and testing.
+
+    Any use of this code is at your own risk."""
     # define your own logic here.
-    # for example, can call an API to check if the code is safe to execute
+    # for example, can call an API to verify the content of the code
     pass
 
 agent_executor = create_python_agent(

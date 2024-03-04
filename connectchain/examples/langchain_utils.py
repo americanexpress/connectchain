@@ -9,7 +9,14 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-"""Example of using the langchain package to create a language chain."""
+"""Example of using the langchain package to create a language chain.
+
+IMPORTANT: This example is a simplified example designed to showcase concepts and should not used
+as a reference for production code. The features are experimental and may not be suitable for
+use in sensitive environments or without additional safeguards and testing.
+
+Any use of this code is at your own risk.
+"""
 # pylint: disable=no-name-in-module
 from dotenv import load_dotenv, find_dotenv
 from langchain.agents import AgentType

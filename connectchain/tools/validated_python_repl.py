@@ -9,7 +9,7 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-"""A version of PythonREPLTool that sanitizes the input before running it in the REPL"""
+"""A version of PythonREPLTool that sanitizes the input before running it in the REPL."""
 #pylint: disable=no-name-in-module too-few-public-methods unused-argument
 import re
 from typing import Any, Callable, Optional
@@ -18,7 +18,14 @@ from langchain.tools import PythonREPLTool
 
 
 def default_sanitize_input(query: str) -> str:
-    """Sanitize the input by removing leading and trailing spaces and `python` keyword"""
+    """Example sanitizer; modifies the input by removing leading and trailing spaces and `python` keyword
+
+    IMPORTANT: This is a simplified example designed to showcase concepts and should not used
+    as a reference for production code. The features are experimental and may not be suitable for
+    use in sensitive environments or without additional safeguards and testing.
+
+    Any use of this code is at your own risk.
+    """
     query = re.sub(r"^(\s|`)*(?i:python)?\s*", "", query)
     query = re.sub(r"(\s|`)*$", "", query)
     return query
