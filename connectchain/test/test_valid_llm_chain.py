@@ -40,7 +40,7 @@ class TestValidLLMChain(TestCase):
         llm = OpenAIChat(
             engine='gpt-35',
             model_name='gpt-35-turbo',
-            openai_api_key="12345",
+            api_key="12345",
             openai_api_base="stub")
 
         chain = ValidLLMChain(llm=llm, prompt=prompt, output_sanitizer=my_sanitizer)
