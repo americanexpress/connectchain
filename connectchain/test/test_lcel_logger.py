@@ -10,6 +10,7 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 """This is the unit test for the lcel_logger"""
+import re
 from unittest import TestCase
 
 from connectchain.prompts import ValidPromptTemplate
@@ -23,6 +24,9 @@ class PrintLogger(Logger):
     def print(self, payload):
         self.output = payload.text
 
+    def sanitize_output(self, str):
+        string = re.sub(r"^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$", "", payload)
+        self.output = string
 
 TEMPLATE = "Give me 10 different {animal_type} species."
 
