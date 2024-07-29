@@ -20,10 +20,15 @@ class Logger(ABC):
     def print(self, payload):
         """Send the payload to the desired component"""
 
+    @abstractmethod
+    def sanitize_output(self, payload):
+        """Sanitize the payload to remove sensitive information"""
+
     def log(self):
         """Return a lambda function that logs the payload"""
 
         def _log_helper(payload: any):
+            self.sanitize_output(payload)
             self.print(payload)
             return payload
 
