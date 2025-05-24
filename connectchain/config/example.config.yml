@@ -10,7 +10,7 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 eas:
-    url: # Enterprise Auth Service provider URL
+    url: http://localhost:8000/auth # Enterprise Auth Service provider URL
     scope: [
         # EAS token scope. Example:
         # /domain/api/v1/route1/**::get,
@@ -24,8 +24,8 @@ proxy:
     host: ~ # Proxy host
     port: ~ # Proxy port
 cert:
-    cert_path: # Cert download URL
-    cert_name: # Cert name. Example: ./MyCert.crt (match with `.env` REQUESTS_CA_BUNDLE)
+    cert_path: http://dummy_url # Cert download URL
+    cert_name: dummy.crt # Cert name. Example: ./MyCert.crt (match with `.env` REQUESTS_CA_BUNDLE)
     cert_size: # Example: 1938
 models:
     # gpt-3.5

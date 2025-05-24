@@ -91,10 +91,15 @@ class TokenUtil:
             cert_name = self.config.cert.cert_name
         if cert_size is None:
             cert_size = self.config.cert.cert_size
-        urllib.request.urlretrieve(cert_path, cert_name)
-        # check whether the certificate exists locally
-        if not os.path.getsize("./" + cert_name) == cert_size:
-            raise UtilException("Failed to Download the certificate")
+        
+        # Skip download if dummy cert_path or cert_name is used
+        if cert_path == "http://dummy_url" or cert_name == "dummy.crt":
+            print("Skipping certificate download for dummy configuration.")
+        else:
+            urllib.request.urlretrieve(cert_path, cert_name)
+            # check whether the certificate exists locally
+            if not os.path.getsize("./" + cert_name) == cert_size:
+                raise UtilException("Failed to Download the certificate")
         # check the expiration date of the certificate
         cert_data = TokenUtil.read_cert(cert_name)
         cert_expires = TokenUtil.get_cert_expiration(cert_data)
@@ -181,7 +186,9 @@ class TokenUtil:
             cert_name = model_config.cert.cert_name
         if cert_name is None:
             cert_name = self.config.cert.cert_name
-        if not os.path.exists(cert_name):
+        
+        # Skip cert existence check if dummy cert_name is used, as it won't be downloaded
+        if not (cert_name == "dummy.crt" or os.path.exists(cert_name)):
             self.__retrieve_cert(model_config)
         correlation_id = uuid.uuid1().hex
         version = TokenUtil.__SERVICE_VERSION
