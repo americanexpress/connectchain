@@ -18,25 +18,24 @@ use in sensitive environments or without additional safeguards and testing.
 Any use of this code is at your own risk.
 """
 # pylint: disable=no-name-in-module
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from langchain.agents import AgentType
 from langchain.agents.agent_toolkits import create_python_agent
 from langchain.chains import LLMChain
 from langchain.prompts import PromptTemplate
 from langchain.tools import PythonREPLTool
+
 from connectchain.lcel import model
 
 # pylint: disable=duplicate-code
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
     PROMPT_TEMPLATE = "Tell me about {topic}"
-    prompt = PromptTemplate(
-        input_variables=["adjective"], template=PROMPT_TEMPLATE
-    )
-    llm = model('1')
+    prompt = PromptTemplate(input_variables=["adjective"], template=PROMPT_TEMPLATE)
+    llm = model("1")
     chain = LLMChain(llm=llm, prompt=prompt)
-    output = chain.run('computer science')
+    output = chain.run("computer science")
     print(output)
 
     agent_executor = create_python_agent(

@@ -11,5 +11,5 @@
 # the License.
 """This module contains utilities for connectchain"""
 from .config import Config, ConfigException
-from .token_util import get_token_from_env, TokenUtil, UtilException
 from .session_map import SessionMap
+from .token_util import TokenUtil, UtilException, get_token_from_env

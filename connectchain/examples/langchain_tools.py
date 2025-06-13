@@ -17,20 +17,22 @@ use in sensitive environments or without additional safeguards and testing.
 
 Any use of this code is at your own risk.
 """
-#pylint: disable=no-name-in-module
+# pylint: disable=no-name-in-module
 import re
-from dotenv import load_dotenv, find_dotenv
+
+from dotenv import find_dotenv, load_dotenv
 from langchain.agents import AgentType
 from langchain.agents.agent_toolkits import create_python_agent
 from langchain.chat_models import ChatOpenAI as AzureOpenAI
+
 from connectchain.tools import ValidPythonREPLTool
-from connectchain.utils import get_token_from_env, Config
+from connectchain.utils import Config, get_token_from_env
 from connectchain.utils.exceptions import OperationNotPermittedException
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
     auth_token = get_token_from_env()
-    model_config = Config.from_env().models['1']
+    model_config = Config.from_env().models["1"]
 
     llm = AzureOpenAI(
         model_name=model_config.model_name,
@@ -39,12 +41,13 @@ if __name__ == '__main__':
         model_kwargs={
             "engine": model_config.engine,
             "api_version": model_config.api_version,
-            "api_type": "azure"
-        })
+            "api_type": "azure",
+        },
+    )
 
     def simple_sanitizer(query: str) -> str:
         """Sample sanitizer
-        
+
         IMPORTANT: This is a simplified example designed to showcase concepts and should not used
         as a reference for production code. The features are experimental and may not be suitable for
         use in sensitive environments or without additional safeguards and testing.
@@ -57,11 +60,10 @@ if __name__ == '__main__':
         pattern = r"with open\('[\w\-\.]+','wb'\) as \w+:"
         match = re.search(pattern, query)
         if match:
-            raise OperationNotPermittedException(f'Illegal execution detected: {query}')
+            raise OperationNotPermittedException(f"Illegal execution detected: {query}")
 
-        print('my_sanitizer: ', query)
+        print("my_sanitizer: ", query)
         return query
-
 
     agent_executor = create_python_agent(
         llm=llm,
@@ -78,4 +80,4 @@ if __name__ == '__main__':
     try:
         output = agent_executor.run("with open('test.txt','wb') as f: f.write(b'hello world')")
     except OperationNotPermittedException as e:
-        print(f'Execution aborted. I/O operation detected: {e}')
+        print(f"Execution aborted. I/O operation detected: {e}")

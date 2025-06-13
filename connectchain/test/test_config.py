@@ -9,14 +9,15 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-""" Unit tests for Config class by mocking the config.yml
- file read operation to return mock_config """
+"""Unit tests for Config class by mocking the config.yml
+file read operation to return mock_config"""
 
-import unittest
 import os
+import unittest
+
 from connectchain.utils import Config
 
-#pylint: disable=invalid-name duplicate-code
+# pylint: disable=invalid-name duplicate-code
 mock_config = """
 eas:
     url: https://someurl/token
@@ -31,9 +32,9 @@ cert:
 """
 
 
-
 class TestConfig(unittest.TestCase):
-    """ Test Config class"""
+    """Test Config class"""
+
     def test_config(self):
         "create mock config.yml file"
         with open("mock_config.yml", "w", encoding="utf-8") as f:

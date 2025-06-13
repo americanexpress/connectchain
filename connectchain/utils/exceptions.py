@@ -11,8 +11,10 @@
 # the License.
 """ConnectChain exceptions."""
 
+
 class OperationNotPermittedException(Exception):
     """Operation Not Permitted Exception"""
 
+
 class ConnectChainNoAccessException(BaseException):
-    "ConnectChain does not allow access to this class or method."
+    """ConnectChain does not allow access to this class or method."""

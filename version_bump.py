@@ -14,10 +14,10 @@ based on the release type passed as an argument in the workflow"""
 import sys
 import re
 
-#Read the current version from setup.py
-with open("setup.py", "r", encoding="utf-8") as f:
-    setup_file = f.read()
-current_version = re.search(r"version='(\d+\.\d+\.\d+)'", setup_file).group(1)
+#Read the current version from pyproject.toml
+with open("pyproject.toml", "r", encoding="utf-8") as f:
+    toml_file = f.read()
+current_version = re.search(r'version = "(\d+\.\d+\.\d+)"', toml_file).group(1)
 
 #Split version into components(MAJOR.MINOR.PATCH)
 MAJOR, MINOR, PATCH = current_version.split(".")
@@ -39,8 +39,8 @@ else:
     print("Invalid release type")
     sys.exit(1)
 
-#Write the updated version to setup.py
+#Write the updated version to pyproject.toml
 new_version = f"{MAJOR}.{MINOR}.{PATCH}"
-with open("setup.py", "w",encoding="utf-8") as f:
-    f.write(re.sub(r"version='\d+\.\d+\.\d+'", f"version='{new_version}'", setup_file))
+with open("pyproject.toml", "w",encoding="utf-8") as f:
+    f.write(re.sub(r'version = "\d+\.\d+\.\d+"', f'version = "{new_version}"', toml_file))
 print(f"version updated to {new_version}")

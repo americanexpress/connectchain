@@ -10,9 +10,10 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 """A version of PythonREPLTool that sanitizes the input before running it in the REPL."""
-#pylint: disable=no-name-in-module too-few-public-methods unused-argument
+# pylint: disable=no-name-in-module too-few-public-methods unused-argument
 import re
 from typing import Any, Callable, Optional
+
 from langchain.callbacks.manager import CallbackManagerForToolRun
 from langchain.tools import PythonREPLTool
 
@@ -34,22 +35,25 @@ def default_sanitize_input(query: str) -> str:
 class ValidPythonREPLTool(PythonREPLTool):
     """__init_ receives a function to sanitize and validate the inputs.
     function takes a str as argument and returns a str or throws exception"""
-    def __init__(self, sanitize_input: Callable[[str], str] = default_sanitize_input, **kwargs):
+
+    def __init__(
+        self, sanitize_input: Callable[[str], str] = default_sanitize_input, **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self.sanitize_input = sanitize_input
 
     def _run(
-            self,
-            query: str,
-            run_manager: Optional[CallbackManagerForToolRun] = None,
+        self,
+        query: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> Any:
         self.sanitize_input(query)
         return self.python_repl.run(query)
 
     async def _arun(
-            self,
-            query: str,
-            run_manager: Optional[CallbackManagerForToolRun] = None,
+        self,
+        query: str,
+        run_manager: Optional[CallbackManagerForToolRun] = None,
     ) -> Any:
         self.sanitize_input(query)
         return self.python_repl.run(query)

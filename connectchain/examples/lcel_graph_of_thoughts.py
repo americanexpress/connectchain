@@ -28,11 +28,13 @@ The flow is as follows:
 4. Evaluate the four titles - whether they meet the requirements of the targeted tones.
 5. Refine the titles to make them more tones, based on the evaluation in step 4.
 """
-from dotenv import load_dotenv, find_dotenv
-from langchain.schema import StrOutputParser
 from operator import itemgetter
+
+from dotenv import find_dotenv, load_dotenv
+from langchain.schema import StrOutputParser
+
+from connectchain.lcel import Logger, model
 from connectchain.prompts import ValidPromptTemplate
-from connectchain.lcel import model, Logger
 
 MODELS = {"GPT35": "1", "GPT4": "2", "DAVINCI": "3"}
 
@@ -44,44 +46,44 @@ class PrintLogger(Logger):
         print(f'\n{"="*100}\n', payload)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
     summary_prompt = ValidPromptTemplate(
         input_variables=["children_book", "story_elements"],
         template="Step 1 : "
-                 "Provide me three summaries for the children's book {children_book}. "
-                 "Each summary should include all the elements in the story_elements {story_elements}."
+        "Provide me three summaries for the children's book {children_book}. "
+        "Each summary should include all the elements in the story_elements {story_elements}.",
     )
 
     summary_aggregation_prompt = ValidPromptTemplate(
         input_variables=["story_summaries"],
         template="Step 2 : "
-                 "Concatenate all the three story summaries {story_summaries} together to get one final summary. "
-                 "Remove any duplicated part."
+        "Concatenate all the three story summaries {story_summaries} together to get one final summary. "
+        "Remove any duplicated part.",
     )
 
     title_prompt = ValidPromptTemplate(
         input_variables=["summary_aggregation", "tones"],
         template="Step 3 : "
-                 "Create four distinct titles for each of the summary aggregations {summary_aggregation}. "
-                 "Make sure each title has the targeted tones {tones}."
+        "Create four distinct titles for each of the summary aggregations {summary_aggregation}. "
+        "Make sure each title has the targeted tones {tones}.",
     )
 
     title_eval_prompt = ValidPromptTemplate(
         input_variables=["titles", "tones"],
         template="Step 4 : "
-                 "For each of the four titles {titles}, write out the title first, "
-                 "evaluate the title against the targeted tones {tones}, "
-                 "and assign an score out of 10 for the title. "
-                 "A higher score means that the title has more {tones} tones."
+        "For each of the four titles {titles}, write out the title first, "
+        "evaluate the title against the targeted tones {tones}, "
+        "and assign an score out of 10 for the title. "
+        "A higher score means that the title has more {tones} tones.",
     )
 
     refine_tone_prompt = ValidPromptTemplate(
         input_variables=["title_eval", "tones"],
         template="Step 5 : "
-                 "Based on the evaluation (title_eval) on the tones {tones} for the four titles, "
-                 "please refine each of the titles to make it more {tones}."
+        "Based on the evaluation (title_eval) on the tones {tones} for the four titles, "
+        "please refine each of the titles to make it more {tones}.",
     )
 
     model_name = "GPT35"
@@ -90,17 +92,24 @@ if __name__ == '__main__':
 
     chain1 = summary_prompt | model_parser_logger
     chain2 = {"story_summaries": chain1} | summary_aggregation_prompt | model_parser_logger
-    chain3 = {"summary_aggregation": chain2, "tones": itemgetter("tones")} | title_prompt | model_parser_logger
-    chain4 = {"titles": chain3, "tones": itemgetter("tones")} | title_eval_prompt | model_parser_logger
-    chain5 = {"title_eval": chain4, "tones": itemgetter("tones")} | refine_tone_prompt | model_parser
+    chain3 = (
+        {"summary_aggregation": chain2, "tones": itemgetter("tones")}
+        | title_prompt
+        | model_parser_logger
+    )
+    chain4 = (
+        {"titles": chain3, "tones": itemgetter("tones")} | title_eval_prompt | model_parser_logger
+    )
+    chain5 = (
+        {"title_eval": chain4, "tones": itemgetter("tones")} | refine_tone_prompt | model_parser
+    )
 
     with open("example_files/children_book.txt", "r", encoding="utf-8") as f:
         children_book = f.read()
     story_elements = ["theme", "characters", "setting", "plot", "conflict"]
     tones = ["interesting", "attractive"]
 
-    output = chain4.invoke({"children_book": children_book,
-                            "story_elements": story_elements,
-                            "tones": tones
-                            })
+    output = chain4.invoke(
+        {"children_book": children_book, "story_elements": story_elements, "tones": tones}
+    )
     print(f"\n{'=' * 100}\n{model_name}:\n{output}\n{'=' * 100}")

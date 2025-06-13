@@ -13,35 +13,37 @@
 Example of using the PortableOrchestrator.
 """
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
+
 from connectchain.orchestrators import PortableOrchestrator
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
     orchestrator = PortableOrchestrator.from_prompt_template(
         prompt_template="Tell me about the {bird_type} family of birds.",
-        input_variables=["bird_type"])
+        input_variables=["bird_type"],
+    )
 
-    for bird_type in ['Flycatcher', 'Flicker', 'Thrasher']:
+    for bird_type in ["Flycatcher", "Flicker", "Thrasher"]:
         output = orchestrator.run_sync(bird_type)
-        print(f'Response for {bird_type}:\n{output}\n')
+        print(f"Response for {bird_type}:\n{output}\n")
 
     orchestrator = PortableOrchestrator.from_prompt_template(
         prompt_template="Write me a poem about birds, specifically the {bird_type}.",
-        input_variables=["bird_type"]
+        input_variables=["bird_type"],
     )
 
-    output = orchestrator.run_sync('Cactus Wren')
+    output = orchestrator.run_sync("Cactus Wren")
 
-    print(f'Response for bird poem:\n{output}\n')
+    print(f"Response for bird poem:\n{output}\n")
 
     orchestrator = PortableOrchestrator.from_prompt_template(
         prompt_template="Translate this poem into {language}: {poem}",
         input_variables=["language", "poem"],
-        index="2" # e.g. another model
+        index="2",  # e.g. another model
     )
 
-    output = orchestrator.run_sync({ "poem": output, "language": "Shakesperian English" })
+    output = orchestrator.run_sync({"poem": output, "language": "Shakesperian English"})
 
-    print(f'16th century bird poem:\n{output}')
+    print(f"16th century bird poem:\n{output}")

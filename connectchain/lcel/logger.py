@@ -11,19 +11,22 @@
 # the License.
 """This module defines the interface for the logger component"""
 from abc import ABC, abstractmethod
+from typing import Any
+
 from langchain.schema.runnable import RunnableLambda
 
 
 class Logger(ABC):
     """This is the class that defines the interface for the logger component"""
+
     @abstractmethod
-    def print(self, payload):
+    def print(self, payload: Any) -> None:
         """Send the payload to the desired component"""
 
-    def log(self):
+    def log(self) -> RunnableLambda:
         """Return a lambda function that logs the payload"""
 
-        def _log_helper(payload: any):
+        def _log_helper(payload: Any) -> Any:
             self.print(payload)
             return payload
 

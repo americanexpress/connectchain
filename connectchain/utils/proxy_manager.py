@@ -10,53 +10,65 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 """Proxy Manager Mixin"""
+from contextlib import contextmanager
+from logging import Logger
+from typing import Any, Dict, Generator, Optional
+
 import requests
 import requests.adapters
-from contextlib import contextmanager
 from pydantic import BaseModel
-from logging import Logger
 
 _logger_ = Logger(__name__)
 
+
 class ProxyConfig(BaseModel):
-    """Proxy configuration"""
+    """Proxy configuration for HTTP/HTTPS requests."""
+
     host: str
     port: int
 
-class ProxyManager():
-    proxy_config: ProxyConfig
 
-    def __init__(self, proxy_config: ProxyConfig | None) -> None:
+class ProxyManager:
+    """Manages proxy configuration for LLM requests."""
+
+    proxy_config: Optional[ProxyConfig]
+
+    def __init__(self, proxy_config: Optional[ProxyConfig]) -> None:
+        """Initialize proxy manager with optional proxy configuration."""
         self.proxy_config = proxy_config
 
-    def _build_proxy_settings_(self):
+    def _build_proxy_settings_(self) -> Dict[str, str]:
+        """Build proxy settings dictionary for requests."""
+        if not self.proxy_config:
+            return {}
         return {
-            'http': f'http://{self.proxy_config.host}:{self.proxy_config.port}',
-            'https': f'https://{self.proxy_config.host}:{self.proxy_config.port}'
+            "http": f"http://{self.proxy_config.host}:{self.proxy_config.port}",
+            "https": f"https://{self.proxy_config.host}:{self.proxy_config.port}",
         }
-    
-    def _patch_session_proxies_(self):
+
+    def _patch_session_proxies_(self) -> Generator[None, None, None]:
+        """Patch requests.Session to use proxy configuration."""
         proxy_config = self._build_proxy_settings_()
         vanilla_session = requests.Session.__init__
 
-        def monkeypatch_proxied_session(self, *args, **kwargs):
+        def monkeypatch_proxied_session(self: Any, *args: Any, **kwargs: Any) -> None:
             vanilla_session(self, *args, **kwargs)
             self.proxies.update(proxy_config)
 
-        requests.Session.__init__ = monkeypatch_proxied_session
+        requests.Session.__init__ = monkeypatch_proxied_session  # type: ignore[method-assign]
 
         try:
             yield
         finally:
-            requests.Session.__init__ = vanilla_session
+            requests.Session.__init__ = vanilla_session  # type: ignore[method-assign]
 
     @contextmanager
-    def configure_proxy_sync(self):
-        """Configure the proxy for `aiohttp` [@see https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support]"""
+    def configure_proxy_sync(self) -> Generator[None, None, None]:
+        """Configure the proxy for synchronous requests."""
         return self._patch_session_proxies_()
 
     @contextmanager
-    def configure_proxy_async(self):
-        """Configure the proxy for `aiohttp` [@see https://docs.aiohttp.org/en/stable/client_advanced.html#proxy-support]"""
-        _logger_.warning('Async proxy support is not thread safe')
+    def configure_proxy_async(self) -> Generator[None, None, None]:
+        """Configure the proxy for asynchronous requests."""
+        _logger_.warning("Async proxy support is not thread safe")
         return self._patch_session_proxies_()

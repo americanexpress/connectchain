@@ -19,8 +19,9 @@ use in sensitive environments or without additional safeguards and testing.
 Any use of this code is at your own risk.
 """
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from langchain.prompts import PromptTemplate
+
 from connectchain.chains import ValidLLMChain
 from connectchain.lcel import model
 from connectchain.utils.exceptions import OperationNotPermittedException
@@ -39,21 +40,20 @@ def my_sanitizer(query: str) -> str:
         raise OperationNotPermittedException(f"Illegal execution detected: {query}")
     return query
 
-#pylint: disable=duplicate-code
-if __name__ == '__main__':
+
+# pylint: disable=duplicate-code
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
     PROMPT_TEMPLATE = "Tell me about {adjective} animals"
-    prompt = PromptTemplate(
-        input_variables=["adjective"], template=PROMPT_TEMPLATE
-    )
+    prompt = PromptTemplate(input_variables=["adjective"], template=PROMPT_TEMPLATE)
 
-    chain = ValidLLMChain(llm=model('1'), prompt=prompt, output_sanitizer=my_sanitizer)
+    chain = ValidLLMChain(llm=model("1"), prompt=prompt, output_sanitizer=my_sanitizer)
 
-    output = chain.run('cute and cuddly')
+    output = chain.run("cute and cuddly")
     print(output)
 
     try:
-        output = chain.run('BADWORD')
+        output = chain.run("BADWORD")
     except OperationNotPermittedException as e:
         print(e)

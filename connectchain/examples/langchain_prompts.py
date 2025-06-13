@@ -19,14 +19,14 @@ Any use of this code is at your own risk.
 """
 import re
 
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from langchain.chains import LLMChain
-from connectchain.prompts import ValidPromptTemplate
+
 from connectchain.lcel import model
+from connectchain.prompts import ValidPromptTemplate
 from connectchain.utils.exceptions import OperationNotPermittedException
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
     def example_sanitizer(query: str) -> str:
@@ -38,27 +38,25 @@ if __name__ == '__main__':
 
         Any use of this code is at your own risk.
         """
-        pattern = r'BADWORD'
+        pattern = r"BADWORD"
 
         if re.search(pattern, query):
             print("BADWORD found!")
-            raise OperationNotPermittedException(f'Illegal execution detected: {query}')
+            raise OperationNotPermittedException(f"Illegal execution detected: {query}")
 
         return query
 
     prompt_template = "Tell me about {adjective} books"
     prompt = ValidPromptTemplate(
-        output_sanitizer=example_sanitizer,
-        input_variables=["adjective"],
-        template=prompt_template
+        output_sanitizer=example_sanitizer, input_variables=["adjective"], template=prompt_template
     )
 
-    chain = LLMChain(llm=model('1'), prompt=prompt)
+    chain = LLMChain(llm=model("1"), prompt=prompt)
 
-    output = chain.run('history and science')
+    output = chain.run("history and science")
     print(output)
 
     try:
-        chain.run('BADWORD')
+        chain.run("BADWORD")
     except OperationNotPermittedException as e:
-        print(f'Bad stuff: {e}')
+        print(f"Bad stuff: {e}")

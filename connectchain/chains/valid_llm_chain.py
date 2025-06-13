@@ -13,28 +13,29 @@
 This module contains the ValidLLMChain class, which is a subclass of LLMChain.
 In addition, it has a callback for sanitizing the output
 """
-from typing import Callable, Optional, Any, Dict, List
+from typing import Any, Callable, Dict, List, Optional
+
 from langchain.callbacks.base import Callbacks
 from langchain.chains import LLMChain
 
 
 class ValidLLMChain(LLMChain):
-    #pylint: disable=too-few-public-methods
+    # pylint: disable=too-few-public-methods
     """
     Extension to LLMChain that sanitizes the output if provided with a sanitizer function
     """
     output_sanitizer: Optional[Callable[[str], str]]
 
     def run(
-            self,
-            *args: Any,
-            callbacks: Callbacks = None,
-            tags: Optional[List[str]] = None,
-            metadata: Optional[Dict[str, Any]] = None,
-            **kwargs: Any,
+        self,
+        *args: Any,
+        callbacks: Callbacks = None,
+        tags: Optional[List[str]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs: Any,
     ) -> Any:
         # pylint: disable=unused-argument
-        """ Run the chain with the given input and return the output """
+        """Run the chain with the given input and return the output"""
         query = self.output_sanitizer(args[0]) if self.output_sanitizer else args[0]
 
         return super().run(query, callbacks=callbacks, tags=tags, metadata=metadata)
