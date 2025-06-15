@@ -12,17 +12,17 @@
 """This is the unit test for the lcel_logger"""
 from unittest import TestCase
 
-from connectchain.lcel import Logger
+from connectchain.lcel import LCELLogger, PrintLogger
 from connectchain.prompts import ValidPromptTemplate
 
 
-class PrintLogger(Logger):
-    """Prints the payload to the console"""
+class SelfLogger(LCELLogger):
+    """Sets the target log as a SelfLogger attribute for testing"""
 
     def __init__(self):
         self.output = ""
 
-    def print(self, payload):
+    def log(self, payload):
         self.output = payload.text
 
 
@@ -32,11 +32,16 @@ prompt = ValidPromptTemplate(input_variables=["animal_type"], template=TEMPLATE)
 
 
 class TestLogger(TestCase):
-    """This is the unit test for the lcel_logger"""
+    """This is the unit test for the LCEL logger"""
 
-    def test_log(self):
-        """Test the log method"""
-        logger = PrintLogger()
-        chain = prompt | logger.log()
+    def test_lcellogger(self):
+        logger = SelfLogger()
+        chain = prompt | logger
         chain.invoke({"animal_type": "bird"})
         self.assertEqual(logger.output, "Give me 10 different bird species.")
+
+    def test_printlogger(self):
+        logger = PrintLogger()
+        chain = prompt | logger
+        out = chain.invoke({"animal_type": "bird"})
+        self.assertEqual(out.text, "Give me 10 different bird species.")

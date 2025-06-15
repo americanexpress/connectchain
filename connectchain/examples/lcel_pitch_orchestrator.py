@@ -18,16 +18,16 @@ Example of using LCEL for a more complex chaining. The flow is as follows:
 from dotenv import find_dotenv, load_dotenv
 from langchain.schema import StrOutputParser
 
-from connectchain.lcel import Logger, model
+from connectchain.lcel import LCELLogger, model
 from connectchain.prompts import ValidPromptTemplate
 
 if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
-    class PrintLogger(Logger):
+    class PrintLogger(LCELLogger):
         """Prints the payload to the console"""
 
-        def print(self, payload):
+        def log(self, payload):
             print(payload)
 
     logger = PrintLogger()

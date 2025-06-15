@@ -12,3 +12,4 @@
 """LCEL package."""
 from .logger import *
 from .model import *
+from .retry import LCELRetry

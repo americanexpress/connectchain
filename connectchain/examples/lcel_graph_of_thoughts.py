@@ -33,16 +33,16 @@ from operator import itemgetter
 from dotenv import find_dotenv, load_dotenv
 from langchain.schema import StrOutputParser
 
-from connectchain.lcel import Logger, model
+from connectchain.lcel import LCELLogger, model
 from connectchain.prompts import ValidPromptTemplate
 
 MODELS = {"GPT35": "1", "GPT4": "2", "DAVINCI": "3"}
 
 
-class PrintLogger(Logger):
+class PrintLogger(LCELLogger):
     """Prints the payload to the console"""
 
-    def print(self, payload):
+    def log(self, payload):
         print(f'\n{"="*100}\n', payload)
 
 

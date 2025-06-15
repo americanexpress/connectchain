@@ -107,9 +107,9 @@ class TokenUtil:
         # check the expiration date of the certificate
         if cert_name:
             cert_data = TokenUtil.read_cert(str(cert_name))
-            cert_expires = TokenUtil.get_cert_expiration(cert_data)
-            if cert_expires < datetime.now():
-                raise UtilException("Certificate expired, please renew")
+        cert_expires = TokenUtil.get_cert_expiration(cert_data)
+        if cert_expires < datetime.now():
+            raise UtilException("Certificate expired, please renew")
 
     @staticmethod
     def read_cert(cert_name: str) -> str:
