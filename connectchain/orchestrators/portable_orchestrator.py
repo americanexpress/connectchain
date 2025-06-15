@@ -12,7 +12,7 @@
 """
 This module contains the PortableOrchestrator class.
 """
-from typing import Any, List, Optional
+from typing import Any, List
 
 import connectchain.chains
 import connectchain.prompts

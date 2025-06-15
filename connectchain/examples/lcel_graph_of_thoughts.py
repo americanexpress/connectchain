@@ -86,9 +86,9 @@ if __name__ == "__main__":
         "please refine each of the titles to make it more {tones}.",
     )
 
-    model_name = "GPT35"
-    model_parser = model(MODELS[model_name]) | StrOutputParser()
-    model_parser_logger = model(MODELS[model_name]) | StrOutputParser() | PrintLogger().log()
+    MODEL_NAME = "GPT35"
+    model_parser = model(MODELS[MODEL_NAME]) | StrOutputParser()
+    model_parser_logger = model(MODELS[MODEL_NAME]) | StrOutputParser() | PrintLogger().log()
 
     chain1 = summary_prompt | model_parser_logger
     chain2 = {"story_summaries": chain1} | summary_aggregation_prompt | model_parser_logger
@@ -112,4 +112,4 @@ if __name__ == "__main__":
     output = chain4.invoke(
         {"children_book": children_book, "story_elements": story_elements, "tones": tones}
     )
-    print(f"\n{'=' * 100}\n{model_name}:\n{output}\n{'=' * 100}")
+    print(f"\n{'=' * 100}\n{MODEL_NAME}:\n{output}\n{'=' * 100}")

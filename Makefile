@@ -43,7 +43,7 @@ lint-isort:
 
 lint-pylint:
 	@echo "🔍 Running Pylint code analysis..."
-	@uv run pylint connectchain/ || (echo "❌ Pylint analysis failed" && exit 1)
+	@uv run pylint --fail-under=9.0 connectchain/ || (echo "❌ Pylint analysis failed" && exit 1)
 	@echo "✅ Pylint analysis passed"
 
 lint-mypy:

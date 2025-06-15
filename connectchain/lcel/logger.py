@@ -10,7 +10,6 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 """This module defines the interface for the logger component"""
-import logging
 from abc import ABC, abstractmethod
 from typing import Any
 
@@ -45,39 +44,38 @@ class PrintLogger(LCELLogger):
 
 
 # Example class to extend/implement for support of enterprise logging frameworks.
-'''
-class EnterpriseLogger(LCELLogger):
-    """Enterprise LCEL Logger"""
-
-    def __init__(self):
-        # Pass enterprise log handler
-        pass
-
-    def log(self, payload):
-        self.info(payload)
-
-    def info(self, payload):
-        logger = self._get_logger(logging.INFO)
-        logger.info(payload)
-
-    def warning(self, payload):
-        logger = self._get_logger(logging.WARNING)
-        logger.warning(payload)
-
-    def error(self, payload):
-        logger = self._get_logger(logging.ERROR)
-        logger.error(payload)
-
-    def critical(self, payload):
-        logger = self._get_logger(logging.CRITICAL)
-        logger.critical(payload)
-
-    def _get_logger(self, level=logging.INFO) -> logging.Logger:
-        logger = logging.getLogger(__name__)
-
-        logger.setLevel(level)
-
-        # logger.addHandler(...)
-        logger.propagate = True
-        return logger
-'''
+#
+# class EnterpriseLogger(LCELLogger):
+#     """Enterprise LCEL Logger"""
+#
+#     def __init__(self):
+#         # Pass enterprise log handler
+#         pass
+#
+#     def log(self, payload):
+#         self.info(payload)
+#
+#     def info(self, payload):
+#         logger = self._get_logger(logging.INFO)
+#         logger.info(payload)
+#
+#     def warning(self, payload):
+#         logger = self._get_logger(logging.WARNING)
+#         logger.warning(payload)
+#
+#     def error(self, payload):
+#         logger = self._get_logger(logging.ERROR)
+#         logger.error(payload)
+#
+#     def critical(self, payload):
+#         logger = self._get_logger(logging.CRITICAL)
+#         logger.critical(payload)
+#
+#     def _get_logger(self, level=logging.INFO) -> logging.Logger:
+#         logger = logging.getLogger(__name__)
+#
+#         logger.setLevel(level)
+#
+#         # logger.addHandler(...)
+#         logger.propagate = True
+#         return logger

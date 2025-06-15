@@ -13,19 +13,19 @@
 import asyncio
 from functools import wraps
 from time import sleep
-from typing import Callable, Tuple, Union
+from typing import Any, Awaitable, Callable, Dict, Optional, Tuple, Union
 
 
 def base_retry(  # pylint: disable=too-many-arguments, too-many-positional-arguments
-    func,
-    args=None,
-    kwargs=None,
-    max_retry=3,
-    sleep_time=1,
-    exceptions: Union[Tuple[Exception], Exception] = Exception,
+    func: Callable[..., Any],
+    args: Optional[Tuple[Any, ...]] = None,
+    kwargs: Optional[Dict[str, Any]] = None,
+    max_retry: int = 3,
+    sleep_time: int = 1,
+    exceptions: Union[Tuple[type[BaseException], ...], type[BaseException]] = Exception,
     ebo: bool = False,
-    log_func: Callable = print,
-):
+    log_func: Callable[[str], None] = print,
+) -> Any:
     """Retry a function that may raise exceptions.
 
     Args:
@@ -61,15 +61,15 @@ def base_retry(  # pylint: disable=too-many-arguments, too-many-positional-argum
 
 
 async def abase_retry(  # pylint: disable=too-many-arguments, too-many-positional-arguments
-    func,
-    args=None,
-    kwargs=None,
-    max_retry=3,
-    sleep_time=1,
-    exceptions: Union[Tuple[Exception], Exception] = Exception,
+    func: Callable[..., Awaitable[Any]],
+    args: Optional[Tuple[Any, ...]] = None,
+    kwargs: Optional[Dict[str, Any]] = None,
+    max_retry: int = 3,
+    sleep_time: int = 1,
+    exceptions: Union[Tuple[type[BaseException], ...], type[BaseException]] = Exception,
     ebo: bool = False,
-    log_func: Callable = print,
-):
+    log_func: Callable[[str], None] = print,
+) -> Any:
     """Retry an async function that may raise exceptions.
 
     Args:
@@ -105,12 +105,12 @@ async def abase_retry(  # pylint: disable=too-many-arguments, too-many-positiona
 
 
 def retry_decorator(
-    max_retry=3,
-    sleep_time=1,
-    exceptions: Union[Tuple[Exception], Exception] = Exception,
+    max_retry: int = 3,
+    sleep_time: int = 1,
+    exceptions: Union[Tuple[type[BaseException], ...], type[BaseException]] = Exception,
     ebo: bool = False,
-    log_func: Callable = print,
-):
+    log_func: Callable[[str], None] = print,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
     """Decorator for retrying functions that may raise exceptions.
 
     Args:
@@ -120,9 +120,9 @@ def retry_decorator(
         ebo (bool): Whether to use exponential backoff.
         log_func (callable): The function to use for logging."""
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             return base_retry(func, args, kwargs, max_retry, sleep_time, exceptions, ebo, log_func)
 
         return wrapper
@@ -131,12 +131,12 @@ def retry_decorator(
 
 
 def aretry_decorator(
-    max_retry=3,
-    sleep_time=1,
-    exceptions: Union[Tuple[Exception], Exception] = Exception,
+    max_retry: int = 3,
+    sleep_time: int = 1,
+    exceptions: Union[Tuple[type[BaseException], ...], type[BaseException]] = Exception,
     ebo: bool = False,
-    log_func: Callable = print,
-):
+    log_func: Callable[[str], None] = print,
+) -> Callable[[Callable[..., Awaitable[Any]]], Callable[..., Awaitable[Any]]]:
     """Decorator for retrying async functions that may raise exceptions.
 
     Args:
@@ -146,9 +146,9 @@ def aretry_decorator(
         ebo (bool): Whether to use exponential backoff.
         log_func (Callable): The function to use for logging."""
 
-    def decorator(func):
+    def decorator(func: Callable[..., Awaitable[Any]]) -> Callable[..., Awaitable[Any]]:
         @wraps(func)
-        async def wrapper(*args, **kwargs):
+        async def wrapper(*args: Any, **kwargs: Any) -> Any:
             return await abase_retry(
                 func, args, kwargs, max_retry, sleep_time, exceptions, ebo, log_func
             )

@@ -35,18 +35,21 @@ class ModelTimeoutException(Exception):
     """Custom exception for model timeout failures."""
 
 
-n_db_failure = 0
+N_DB_FAILURE = 0
 
 
 def simulated_database_connection(user_id):
-    global n_db_failure
-    n_db_failure += 1
-    if n_db_failure < 3:
+    """Simulate a database connection that fails several times before succeeding."""
+    global N_DB_FAILURE
+    N_DB_FAILURE += 1
+    if N_DB_FAILURE < 3:
         raise DBException(f"Simulated DB failure for user {user_id}")
     return {"species": "fish"}
 
 
 class SimulatedUnreliableModel(Runnable):
+    """A model wrapper that simulates network/firewall failures before succeeding."""
+
     def __init__(self, model_id):
         self.failures = 0
         self.model = model(model_id)

@@ -19,14 +19,15 @@ from connectchain.utils import retry_decorator
 
 load_dotenv(find_dotenv())
 
-n_failure = 0
+N_FAILURE = 0
 
 
 @retry_decorator()
 def simulated_failure(input):
-    global n_failure
-    n_failure += 1
-    if n_failure < 2:
+    """Simulate a function that fails once before succeeding, demonstrating retry decorator."""
+    global N_FAILURE
+    N_FAILURE += 1
+    if N_FAILURE < 2:
         raise Exception("Simulated failure")
     prompt = PromptTemplate(
         input_variables=["species"], template="What is your favorite {species}?"
@@ -34,9 +35,9 @@ def simulated_failure(input):
     return (prompt | model("2") | StrOutputParser()).invoke(input)
 
 
-res = None
+RES = None
 
-while not res:
-    res = simulated_failure({"species": "mammal"})
+while not RES:
+    RES = simulated_failure({"species": "mammal"})
 
-print(res)
+print(RES)

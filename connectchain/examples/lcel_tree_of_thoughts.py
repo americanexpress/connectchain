@@ -71,9 +71,9 @@ if __name__ == "__main__":
         "Select one solution that have the highest score. Output the selected solution.",
     )
 
-    model_name = "GPT35"
-    model_parser = model(MODELS[model_name]) | StrOutputParser()
-    model_parser_logger = model(MODELS[model_name]) | StrOutputParser() | PrintLogger().log()
+    MODEL_NAME = "GPT35"
+    model_parser = model(MODELS[MODEL_NAME]) | StrOutputParser()
+    model_parser_logger = model(MODELS[MODEL_NAME]) | StrOutputParser() | PrintLogger().log()
 
     chain1 = idea_prompt | model_parser_logger
     chain2 = (
@@ -82,8 +82,8 @@ if __name__ == "__main__":
     chain3 = {"selected_idea": chain2} | solution_prompt | model_parser_logger
     chain4 = {"solutions": chain3} | solution_eval_prompt | model_parser
 
-    action = "hand-make a birthday gift for a five-year-old boy"
-    factors = "playfulness, safety, durability"
+    ACTION = "hand-make a birthday gift for a five-year-old boy"
+    FACTORS = "playfulness, safety, durability"
 
-    output = chain4.invoke({"action": action, "factors": factors})
-    print(f"\n{'='*100}\n{model_name}:\n{output}\n{'='*100}")
+    output = chain4.invoke({"action": ACTION, "factors": FACTORS})
+    print(f"\n{'='*100}\n{MODEL_NAME}:\n{output}\n{'='*100}")

@@ -46,9 +46,9 @@ if __name__ == "__main__":
 
         return query
 
-    prompt_template = "Tell me about {adjective} books"
+    PROMPT_TEMPLATE = "Tell me about {adjective} books"
     prompt = ValidPromptTemplate(
-        output_sanitizer=example_sanitizer, input_variables=["adjective"], template=prompt_template
+        output_sanitizer=example_sanitizer, input_variables=["adjective"], template=PROMPT_TEMPLATE
     )
 
     chain = LLMChain(llm=model("1"), prompt=prompt)

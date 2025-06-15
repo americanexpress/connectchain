@@ -19,6 +19,7 @@ from .utils.exceptions import ConnectChainNoAccessException
 
 # Disable langchain APIChain
 def override(self: Any, *args: Any, **kwargs: Any) -> None:
+    """Override function to disable APIChain operations for security reasons."""
     raise ConnectChainNoAccessException("Operation not permitted")
 
 

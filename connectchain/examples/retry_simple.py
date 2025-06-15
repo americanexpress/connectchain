@@ -21,13 +21,14 @@ load_dotenv(find_dotenv())
 
 EXAMPLE_INPUT = {"species": "birds"}
 
-n_failure = 0
+N_FAILURE = 0
 
 
 def simulated_failure(input):
-    global n_failure
-    n_failure += 1
-    if n_failure < 3:
+    """Simulate a function that fails a certain number of times before succeeding."""
+    global N_FAILURE
+    N_FAILURE += 1
+    if N_FAILURE < 3:
         raise Exception("Simulated failure")
     return model("2").invoke(input)
 
