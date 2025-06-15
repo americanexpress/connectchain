@@ -176,35 +176,6 @@ except OperationNotPermittedException as e:
 
 ```
 
-### `connectchain.tools`: An extension of the langchain tools. 
-We add hooks to improve control over code that is executed by providing an entrypoint for sanitizer implementations.
-
-```python
-from connectchain.tools import ValidPythonREPLTool
-
-def my_sanitizer(query: str) -> str:
-    """IMPORTANT: This is a simplified example designed to showcase concepts and should not used
-    as a reference for production code. The features are experimental and may not be suitable for
-    use in sensitive environments or without additional safeguards and testing.
-
-    Any use of this code is at your own risk."""
-    # define your own logic here.
-    # for example, can call an API to verify the content of the code
-    pass
-
-agent_executor = create_python_agent(
-    llm=llm,
-    tool=ValidPythonREPLTool(my_sanitizer), # normally, you would use PythonREPLTool
-    verbose=True,
-    agent_type=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
-    prompt="Just output the result, no other text or comments.",
-)
-
-output = agent_executor.run("what is 10 to the power of 10?")
-print(output)
-
-```
-
 ## Contributing
 
 We welcome Your interest in the American Express Open Source Community on GitHub. Any Contributor to

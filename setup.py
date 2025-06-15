@@ -33,7 +33,6 @@ setup(
     license='Apache 2.0 license',
     python_requires='>=3.11',
     packages=['connectchain',
-              'connectchain.tools',
               'connectchain.utils',
               'connectchain.prompts',
               'connectchain.chains',
