@@ -12,47 +12,43 @@
 """
 Example of using LCEL with multiple models.
 """
-from dotenv import load_dotenv, find_dotenv
+from dotenv import find_dotenv, load_dotenv
 from langchain.schema import StrOutputParser
-from connectchain.prompts import ValidPromptTemplate
-from connectchain.lcel import model, Logger
 
-if __name__ == '__main__':
+from connectchain.lcel import LCELLogger, model
+from connectchain.prompts import ValidPromptTemplate
+
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
 
-    class PrintLogger(Logger):
+    class PrintLogger(LCELLogger):
         """Prints the payload to the console"""
-        def print(self, payload):
+
+        def log(self, payload):
             print(payload)
 
     logger = PrintLogger()
 
     test_prompt = ValidPromptTemplate(
         input_variables=["description"],
-        template=
-        """
+        template="""
         Describe {description}.
-        """
+        """,
     )
 
     expand_prompt = ValidPromptTemplate(
         input_variables=["ballad_seed"],
-        template=
-        """
+        template="""
         Write an epic ballad given the following information: {ballad_seed}.
-        """
+        """,
     )
 
     chain = (
-            { "ballad_seed": test_prompt
-                | model()
-                | logger.log()
-                | StrOutputParser()
-            }
-            | expand_prompt
-            | model('3')
-            | logger.log()
-            | StrOutputParser()
+        {"ballad_seed": test_prompt | model() | logger.log() | StrOutputParser()}
+        | expand_prompt
+        | model("3")
+        | logger.log()
+        | StrOutputParser()
     )
 
-    out = chain.invoke({ "description": "the universe" })
+    out = chain.invoke({"description": "the universe"})

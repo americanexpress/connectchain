@@ -7,8 +7,19 @@ Primary objectives include:
 * A set of tools to provide greater control over generated prompts. This is done by adding hooks to the existing langchain packages.
 
 ## Installation
+
+### Using pip
 ```bash 
 pip install connectchain
+```
+
+### Using uv (recommended for development)
+```bash
+# Install uv first (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install connectchain
+uv pip install connectchain
 ```
 
 ## Usage
@@ -176,6 +187,132 @@ except OperationNotPermittedException as e:
 
 ```
 
+## Development
+
+This project uses [uv](https://docs.astral.sh/uv/) for fast dependency management and packaging.
+
+### Prerequisites
+
+Install `uv`:
+```bash
+# macOS and Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+
+# Or via pip
+pip install uv
+```
+
+### Setup Development Environment
+
+```bash
+# Clone the repository
+git clone https://github.com/americanexpress/connectchain.git
+cd connectchain
+
+# Install dependencies (including dev dependencies)
+uv sync --dev
+
+# Activate the virtual environment (optional, uv run handles this automatically)
+source .venv/bin/activate  # Linux/macOS
+# or
+.venv\Scripts\activate     # Windows
+```
+
+### Running Tests
+
+The project uses [pytest](https://pytest.org/) for testing. All tests are located in `connectchain/test/`.
+
+```bash
+# Run all tests
+uv run pytest
+
+# Run tests with verbose output
+uv run pytest -v
+
+# Run tests with coverage report
+uv run pytest --cov=connectchain
+
+# Run tests with coverage and show missing lines
+uv run pytest --cov=connectchain --cov-report=term-missing
+
+# Run specific test file
+uv run pytest connectchain/test/test_model.py
+
+# Run tests matching a pattern
+uv run pytest -k "test_model"
+
+# Run tests and stop on first failure
+uv run pytest -x
+```
+
+### Test Coverage
+
+Current test coverage: 36 tests covering the core functionality including:
+- Configuration management
+- Model initialization and proxy support
+- Token utilities and authentication
+- Prompt validation and sanitization
+- Chain execution and logging
+- Orchestrator functionality
+
+### Project Structure
+
+```
+connectchain/
+├── chains/          # Extended LangChain chains with validation
+├── examples/        # Usage examples and demonstrations  
+├── lcel/           # LangChain Expression Language extensions
+├── orchestrators/   # High-level orchestration utilities
+├── prompts/        # Enhanced prompt templates
+├── test/           # Test suite
+├── tools/          # Extended LangChain tools
+└── utils/          # Core utilities (auth, config, proxy)
+```
+
+### Code Quality & Linting
+
+The project uses multiple linting tools to maintain code quality. All tools are configured in `pyproject.toml` and can be run via the Makefile:
+
+```bash
+# Run all checks (recommended)
+make check                                  # Run linting + tests
+make lint                                   # Run all linting checks (includes mypy)
+make lint-quick                             # Run linting checks (skip mypy type checking)
+make test                                   # Run all tests
+
+# Individual linting tools
+make lint-black                             # Code formatting check
+make lint-isort                             # Import sorting check  
+make lint-pylint                            # Static code analysis
+make lint-mypy                              # Type checking
+
+# Auto-fix formatting issues
+make format                                 # Auto-format code and sort imports
+
+# Utility commands
+make clean                                  # Clean up cache files
+make help                                   # Show all available targets
+```
+
+You can also run the tools directly if needed:
+```bash
+uv run black --check connectchain/          # Code formatting check
+uv run isort --check-only connectchain/     # Import sorting check  
+uv run pylint connectchain/                 # Static code analysis
+uv run mypy connectchain/                   # Type checking
+```
+
+### Development Workflow
+
+1. Create a feature branch: `git checkout -b feature/your-feature-name`
+2. Make changes and add tests for new functionality
+3. Run linting checks: `make lint`
+4. Run tests to ensure everything passes: `make test`
+5. Update documentation if needed
+6. Submit a pull request
 ## Contributing
 
 We welcome Your interest in the American Express Open Source Community on GitHub. Any Contributor to

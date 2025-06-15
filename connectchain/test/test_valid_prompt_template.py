@@ -12,17 +12,21 @@
 """
 This module contains unit tests for the ValidPromptTemplate class.
 """
-from unittest import TestCase
 import re
+from unittest import TestCase
+
 from connectchain.prompts import ValidPromptTemplate
 from connectchain.utils.exceptions import OperationNotPermittedException
 
+
 class TestValidPromptTemplate(TestCase):
     """Test Class for ValidPromptTemplate"""
+
     def test_format_prompt(self):
         """method to test valid_prompt_template"""
+
         def output_sanitizer(query: str) -> str:
-            pattern = r'BADWORD'
+            pattern = r"BADWORD"
 
             if re.search(pattern, query):
                 print("BADWORD found!")
@@ -35,7 +39,7 @@ class TestValidPromptTemplate(TestCase):
             template=prompt_template,
         )
 
-        #This will throw an exception as we are trying to pass pattern defined in output_sanitizer
+        # This will throw an exception as we are trying to pass pattern defined in output_sanitizer
         with self.assertRaises(OperationNotPermittedException):
             prompt.format_prompt(topic="BADWORD")
 
@@ -47,4 +51,4 @@ class TestValidPromptTemplate(TestCase):
             template=prompt_template,
         )
         output = prompt.format_prompt(topic="BADWORD").text
-        self.assertEqual('Tell me something interesting about BADWORD.', output)
+        self.assertEqual("Tell me something interesting about BADWORD.", output)

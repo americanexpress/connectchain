@@ -12,7 +12,8 @@
 """Unit test module for the LCELRetry class"""
 import asyncio
 from unittest import TestCase
-from unittest.mock import MagicMock, AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
+
 from connectchain.lcel.retry import LCELRetry
 
 
@@ -39,7 +40,7 @@ class TestLCELRetry(TestCase):
         self.assertEqual(lcel_retry.ebo, ebo)
         self.assertEqual(lcel_retry.log_func, log_func)
 
-    @patch('connectchain.lcel.retry.base_retry')
+    @patch("connectchain.lcel.retry.base_retry")
     def test_call(self, mock_base_retry):
         """Test the __call__ method"""
         runnable = MagicMock()
@@ -47,7 +48,7 @@ class TestLCELRetry(TestCase):
         lcel_retry.__call__()
         mock_base_retry.assert_called_once()
 
-    @patch('connectchain.lcel.retry.abase_retry')
+    @patch("connectchain.lcel.retry.abase_retry")
     def test_acall(self, mock_abase_retry):
         """Test the __acall__ method"""
         runnable = MagicMock()
@@ -56,7 +57,7 @@ class TestLCELRetry(TestCase):
         asyncio.run(lcel_retry.__acall__())
         mock_abase_retry.assert_called_once()
 
-    @patch('connectchain.lcel.retry.base_retry')
+    @patch("connectchain.lcel.retry.base_retry")
     def test_invoke(self, mock_base_retry):
         """Test the invoke method"""
         runnable = MagicMock()
@@ -65,7 +66,7 @@ class TestLCELRetry(TestCase):
         lcel_retry.invoke(1)
         mock_base_retry.assert_called_once()
 
-    @patch('connectchain.lcel.retry.abase_retry')
+    @patch("connectchain.lcel.retry.abase_retry")
     def test_ainvoke(self, mock_abase_retry):
         """Test the ainvoke method"""
         runnable = MagicMock()

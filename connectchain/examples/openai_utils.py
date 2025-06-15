@@ -11,13 +11,14 @@
 # the License.
 """Example of using OpenAI API with Connectchain."""
 import openai
-from dotenv import load_dotenv, find_dotenv
-from connectchain.utils import get_token_from_env, Config
+from dotenv import find_dotenv, load_dotenv
 
-if __name__ == '__main__':
+from connectchain.utils import Config, get_token_from_env
+
+if __name__ == "__main__":
     load_dotenv(find_dotenv())
     auth_token = get_token_from_env()
-    model_config = Config.from_env().models['1']
+    model_config = Config.from_env().models["1"]
 
     openai.api_type = "azure"
     openai.api_version = model_config.api_version
@@ -28,14 +29,17 @@ if __name__ == '__main__':
     out = openai.ChatCompletion.create(
         engine=model_config.engine,
         messages=[
-            {"role": "system",
-             "content": "You are a helpful assistant."},
-            {"role": "user",
-             "content": "What is the primary habitat of the Melozone aberti (Abert's Towhee)?"},
-            {"role": "assistant",
-             "content": "The Abert's Towhee lives in the Sonoran Desert, preferring dense brush along rivers and streams."},
-            {"role": "user",
-             "content": "Do Abert's Towhee migrate?"}
-        ])
+            {"role": "system", "content": "You are a helpful assistant."},
+            {
+                "role": "user",
+                "content": "What is the primary habitat of the Melozone aberti (Abert's Towhee)?",
+            },
+            {
+                "role": "assistant",
+                "content": "The Abert's Towhee lives in the Sonoran Desert, preferring dense brush along rivers and streams.",
+            },
+            {"role": "user", "content": "Do Abert's Towhee migrate?"},
+        ],
+    )
 
     print(out)

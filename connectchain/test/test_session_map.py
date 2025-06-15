@@ -11,33 +11,37 @@
 # the License.
 """Unit testing for SessionMap class"""
 import unittest
+
+from connectchain.test.setup_utils import get_mock_config, wrap_model_config
 from connectchain.utils import SessionMap
 
-from .setup_utils import get_mock_config, wrap_model_config
 
 class TestSessionMap(unittest.TestCase):
-    """Unit testing the SessionMap """
+    """Unit testing the SessionMap"""
 
     def test_uuid_from_config(self):
         """Test that a PortableOrchestrator instance can be built with the default LLM"""
         test_config = get_mock_config()
-        test_uuid = SessionMap.uuid_from_config(test_config, test_config.models['1'])
-        test_uuid2 = SessionMap.uuid_from_config(test_config, test_config.models['2'])
-        self.assertEqual(test_uuid, 'id_key_secret_key_openai_chat_engine_test_model_api_version')
-        self.assertEqual(test_uuid2, 'id_key_secret_key_openai_azure_engine_test_model_other_api_version_other')
+        test_uuid = SessionMap.uuid_from_config(test_config, test_config.models["1"])
+        test_uuid2 = SessionMap.uuid_from_config(test_config, test_config.models["2"])
+        self.assertEqual(test_uuid, "id_key_secret_key_openai_chat_engine_test_model_api_version")
+        self.assertEqual(
+            test_uuid2, "id_key_secret_key_openai_azure_engine_test_model_other_api_version_other"
+        )
 
     def test_model_config_override(self):
         test_config = get_mock_config()
-        test_model_config = wrap_model_config({
-            'eas': {
-                'id_key': 'mod_id',
-                'secret_key': 'mod_sec' # EARLYBIRD-IGNORE
-            },
-            'provider': 'oss_provider',
-            'model_name': 'some_model',
-            'type': 'some_model_type',
-            'engine': 'oss_engine',
-            'api_version': 'latest'
-        })
+        test_model_config = wrap_model_config(
+            {
+                "eas": {"id_key": "mod_id", "secret_key": "mod_sec"},  # EARLYBIRD-IGNORE
+                "provider": "oss_provider",
+                "model_name": "some_model",
+                "type": "some_model_type",
+                "engine": "oss_engine",
+                "api_version": "latest",
+            }
+        )
         test_uuid = SessionMap.uuid_from_config(test_config, test_model_config)
-        self.assertEqual(test_uuid, 'mod_id_mod_sec_oss_provider_some_model_type_oss_engine_some_model_latest')
+        self.assertEqual(
+            test_uuid, "mod_id_mod_sec_oss_provider_some_model_type_oss_engine_some_model_latest"
+        )

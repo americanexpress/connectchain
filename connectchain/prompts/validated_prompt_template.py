@@ -14,7 +14,7 @@ This module contains unit tests for the ValidPromptTemplate class.
 It takes an output_sanitizer function as an argument to the constructor.
 This function is called on the output of the format_prompt method for validation.
 """
-#pylint: disable=too-many-ancestors
+# pylint: disable=too-many-ancestors
 from typing import Any, Callable
 
 from langchain.prompts import PromptTemplate
@@ -23,6 +23,7 @@ from langchain.schema import PromptValue
 
 class ValidPromptTemplate(PromptTemplate):
     """Class to validate Prompt Template"""
+
     output_sanitizer: Callable[[str], str] | None
 
     # pylint: disable=E1102

@@ -9,5 +9,5 @@
 # is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
-""" This module contains the ValidLLMChain class, which is a subclass of LLMChain from Langchain."""
+"""This module contains the ValidLLMChain class, which is a subclass of LLMChain from Langchain."""
 from .valid_llm_chain import ValidLLMChain
