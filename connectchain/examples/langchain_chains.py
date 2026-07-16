@@ -27,8 +27,12 @@ from connectchain.lcel import model
 from connectchain.utils.exceptions import OperationNotPermittedException
 
 
-def my_sanitizer(query: str) -> str:
-    """Sample sanitizer
+def my_sanitizer(response: str) -> str:
+    """Sample output sanitizer.
+
+    ValidLLMChain.output_sanitizer is applied to the LLM's *response*, not the
+    user's input query -- to block or transform something in the prompt itself,
+    use ValidPromptTemplate's own sanitizer instead (see connectchain.prompts).
 
     IMPORTANT: This is a simplified example designed to showcase concepts and should not used
     as a reference for production code. The features are experimental and may not be suitable for
@@ -36,9 +40,9 @@ def my_sanitizer(query: str) -> str:
 
     Any use of this code is at your own risk.
     """
-    if query == "BADWORD":
-        raise OperationNotPermittedException(f"Illegal execution detected: {query}")
-    return query
+    if "BADWORD" in response:
+        raise OperationNotPermittedException(f"Illegal content detected in response: {response}")
+    return response
 
 
 # pylint: disable=duplicate-code
@@ -54,6 +58,8 @@ if __name__ == "__main__":
     print(output)
 
     try:
-        output = chain.run("BADWORD")
+        # This only raises if the model's *response* happens to contain "BADWORD" --
+        # unlike input validation, output sanitization can't reject a query up front.
+        output = chain.run("cute and cuddly")
     except OperationNotPermittedException as e:
         print(e)

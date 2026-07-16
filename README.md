@@ -186,15 +186,22 @@ We add hooks to improve control over code that is executed by providing an entry
 ```python   
 from connectchain.chains import ValidLLMChain
 
-def my_sanitizer(query: str) -> str:
+def my_sanitizer(response: str) -> str:
     """IMPORTANT: This is a simplified example designed to showcase concepts and should not used
     as a reference for production code. The features are experimental and may not be suitable for
     use in sensitive environments or without additional safeguards and testing.
 
-    Any use of this code is at your own risk."""
+    Any use of this code is at your own risk.
+
+    Note: unlike ValidPromptTemplate's sanitizer above (which validates the *input*
+    before it's sent to the LLM), ValidLLMChain's output_sanitizer validates the LLM's
+    *response* -- it can't reject a query before the model call happens.
+    """
     # define your own logic here.
-    # for example, can call an API to verify the content of the code
-    pass
+    # for example, can call an API to verify the content of the response
+    if "BADWORD" in response:
+        raise OperationNotPermittedException("Illegal content detected in response: {}".format(response))
+    return response
 
 chain = ValidLLMChain(llm=llm, prompt=prompt, output_sanitizer=my_sanitizer)
 
@@ -202,7 +209,8 @@ output = chain.run('drought resistant wheat')
 print(output)
 
 try:
-    output = chain.run('BADWORD')
+    # This only raises if the model's response happens to contain "BADWORD".
+    output = chain.run('drought resistant wheat')
 except OperationNotPermittedException as e:
     print(e)
 

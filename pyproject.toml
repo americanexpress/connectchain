@@ -26,13 +26,13 @@ dependencies = [
     "openai>=1.0.0",
     "pyyaml==6.0.1",
     "SQLAlchemy==2.0.22",
-    "langchain>=0.3.26",
-    "langchain-openai>=0.3.24",
-    "langchain-community>=0.3.26",
+    "langchain>=0.3.26,<0.4.0",
+    "langchain-openai>=0.3.24,<0.4.0",
+    "langchain-community>=0.3.26,<0.4.0",
     "tiktoken>=0.7.0",
     "python-dotenv~=1.0.0",
     "pyopenssl==23.3.0",
-    "langchain-mcp-adapters>=0.1.0",
+    "langchain-mcp-adapters>=0.1.0,<0.2.0",
 ]
 
 [project.optional-dependencies]

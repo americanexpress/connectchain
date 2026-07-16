@@ -19,6 +19,7 @@ from typing import Any, Callable
 
 from langchain.prompts import PromptTemplate
 from langchain.schema import PromptValue
+from langchain_core.prompt_values import StringPromptValue
 
 
 class ValidPromptTemplate(PromptTemplate):
@@ -28,6 +29,7 @@ class ValidPromptTemplate(PromptTemplate):
 
     # pylint: disable=E1102
     def format_prompt(self, **kwargs: Any) -> PromptValue:
+        prompt_value = super().format_prompt(**kwargs)
         if self.output_sanitizer:
-            kwargs = {k: self.output_sanitizer(v) for k, v in kwargs.items()}
-        return super().format_prompt(**kwargs)
+            return StringPromptValue(text=self.output_sanitizer(prompt_value.to_string()))
+        return prompt_value
