@@ -1,4 +1,8 @@
 # Connect Chain
+
+> [!WARNING]
+> **This repository is deprecated and is slated for archival.** As LangChain now natively supports enterprise integration, middleware, and guardrails, we recommend using native LangChain capabilities directly (see [#14](https://github.com/americanexpress/connectchain/issues/14)).
+
 An enterprise-grade, Generative AI framework and utilities for AI-enabled applications. `connectchain` is designed to bridge the gap between enterprise needs and what is available in existing frameworks.
 
 Primary objectives include:
