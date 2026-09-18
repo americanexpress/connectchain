@@ -26,6 +26,7 @@ from dotenv import find_dotenv, load_dotenv
 from OpenSSL import crypto as c
 
 from connectchain.utils import Config
+from connectchain.utils.exceptions import NonRetryableError
 
 # There are 3 environment variables that need to be set: CONFIG_PATH:
 # path to the config file Consumer ID: the consumer integration ID.
@@ -35,8 +36,21 @@ from connectchain.utils import Config
 # defined in the config file under eas.secret_key
 
 
-class UtilException(BaseException):
-    """Custom exception class for token_util"""
+class UtilException(Exception, NonRetryableError):
+    """Custom exception class for token_util. Raised for permanent config errors
+    (missing models, undefined index, unset env keys, expired cert) that can
+    never succeed on retry -- see NonRetryableError."""
+
+
+class EASAuthError(Exception):
+    """Raised when a call to the EAS auth service fails (any non-200 response).
+
+    Deliberately a plain, retry-eligible Exception -- NOT a UtilException --
+    because the retryability of an auth-service failure is unknown at raise
+    time: a transient 5xx or throttling response may well succeed on retry.
+    UtilException carries the NonRetryableError marker (it is reserved for
+    permanent config errors), so raising it here would make retry-wrapped
+    token fetches fail fast on recoverable server errors."""
 
 
 def get_token_from_env(index: Any = "1") -> str:
@@ -44,25 +58,29 @@ def get_token_from_env(index: Any = "1") -> str:
     config = Config.from_env()
     try:
         models = config.models
-    except KeyError as ex:
+    except AttributeError as ex:
+        # Config raises AttributeError for a missing top-level key.
         raise UtilException("No models defined in config") from ex
     model_config = models[index]
     if model_config is None:
         raise UtilException(f'Model config at index "{index}" is not defined')
-    consumer_id_key = None
-    consumer_secret_key = None
-    if model_config.eas:
-        consumer_id_key = model_config.eas.id_key
-        consumer_secret_key = model_config.eas.secret_key
+    # A partial per-model eas section overrides the global one key-by-key; each
+    # key is therefore optional at each level, hence getattr's None defaults
+    # (missing keys raise AttributeError now). The global `config.eas` section
+    # itself stays a strict read: reaching the fallback without one is a real
+    # misconfiguration that should fail loudly.
+    model_eas = getattr(model_config, "eas", None)
+    consumer_id_key = getattr(model_eas, "id_key", None)
+    consumer_secret_key = getattr(model_eas, "secret_key", None)
     if consumer_id_key is None:
-        consumer_id_key = config.eas.id_key
+        consumer_id_key = getattr(config.eas, "id_key", None)
     consumer_id = os.getenv(f"{consumer_id_key}")
     if consumer_id is None:
         raise UtilException(
             f'Environment variable id key "{consumer_id_key}" not set for model index {index}'
         )
     if consumer_secret_key is None:
-        consumer_secret_key = config.eas.secret_key
+        consumer_secret_key = getattr(config.eas, "secret_key", None)
     consumer_secret = os.getenv(f"{consumer_secret_key}")
     if consumer_secret is None:
         raise UtilException(
@@ -86,19 +104,23 @@ class TokenUtil:
 
     def __retrieve_cert(self, model_config: Any) -> None:
         """retrieve certificate from the url in the config file if it does not exist locally"""
-        cert_path = None
-        cert_name = None
-        cert_size = None
-        if model_config.cert:
-            cert_path = model_config.cert.cert_path
-            cert_name = model_config.cert.cert_name
-            cert_size = model_config.cert.cert_size
+        # Per-model cert settings override the global ones key-by-key, and every
+        # key is optional at each level (the guards below skip whatever is
+        # unset), hence getattr's None defaults throughout. The global
+        # `self.config.cert` section reads stay strict on purpose: they are
+        # only reached when a key is otherwise unresolved, and a missing global
+        # cert section then fails loudly rather than silently skipping cert
+        # verification.
+        model_cert = getattr(model_config, "cert", None)
+        cert_path = getattr(model_cert, "cert_path", None)
+        cert_name = getattr(model_cert, "cert_name", None)
+        cert_size = getattr(model_cert, "cert_size", None)
         if cert_path is None:
-            cert_path = self.config.cert.cert_path
+            cert_path = getattr(self.config.cert, "cert_path", None)
         if cert_name is None:
-            cert_name = self.config.cert.cert_name
+            cert_name = getattr(self.config.cert, "cert_name", None)
         if cert_size is None:
-            cert_size = self.config.cert.cert_size
+            cert_size = getattr(self.config.cert, "cert_size", None)
         if cert_path and cert_name:
             urllib.request.urlretrieve(str(cert_path), str(cert_name))
         # check whether the certificate exists locally
@@ -126,15 +148,15 @@ class TokenUtil:
 
     def __service_payload(self, model_config: Any) -> Dict[str, Any]:
         """payload to get the bearer token"""
-        scope = None
-        originator_source = None
-        if model_config.eas:
-            scope = model_config.eas.scope
-            originator_source = model_config.eas.originator_source
+        # Same per-model-overrides-global, key-by-key optionality as elsewhere
+        # in this module, hence getattr's None defaults.
+        model_eas = getattr(model_config, "eas", None)
+        scope = getattr(model_eas, "scope", None)
+        originator_source = getattr(model_eas, "originator_source", None)
         if scope is None:
-            scope = self.config.eas.scope
+            scope = getattr(self.config.eas, "scope", None)
         if originator_source is None:
-            originator_source = self.config.eas.originator_source
+            originator_source = getattr(self.config.eas, "originator_source", None)
         return {"scope": scope, "additional_claims": {"originator_source": originator_source}}
 
     @staticmethod
@@ -181,7 +203,10 @@ class TokenUtil:
     def __response_builder(out: Any, status_code: int) -> str:
         if status_code == 200:
             return f"Bearer {out['authorization_token']}"
-        raise UtilException(out["description"])
+        # Non-200 from the auth service may be transient (5xx, throttling), so
+        # raise the retry-eligible EASAuthError rather than the
+        # NonRetryableError-marked UtilException -- see EASAuthError.
+        raise EASAuthError(out["description"])
 
     def __get_signature(self, version: str, timestamp: int) -> str:
         message = f"{self.consumer_id}-{version}-{str(timestamp)}"
@@ -195,11 +220,11 @@ class TokenUtil:
 
     async def get_token(self, model_config: Any) -> str:
         """async method to get the bearer token"""
-        cert_name = None
-        if model_config.cert:
-            cert_name = model_config.cert.cert_name
+        # Per-model override falls back to the global cert section (see
+        # __retrieve_cert for why the reads use getattr's None default).
+        cert_name = getattr(getattr(model_config, "cert", None), "cert_name", None)
         if cert_name is None:
-            cert_name = self.config.cert.cert_name
+            cert_name = getattr(self.config.cert, "cert_name", None)
         if cert_name and not os.path.exists(str(cert_name)):
             self.__retrieve_cert(model_config)
         correlation_id = uuid.uuid1().hex
@@ -207,11 +232,10 @@ class TokenUtil:
         timestamp = int(time.time() * 1000.0)
         signature = self.__get_signature(version, timestamp)
         sor_name = "dummy"
-        eas_url = None
-        if model_config.eas:
-            eas_url = model_config.eas.url
+        # Per-model override falls back to the global eas section, key-by-key.
+        eas_url = getattr(getattr(model_config, "eas", None), "url", None)
         if eas_url is None:
-            eas_url = self.config.eas.url
+            eas_url = getattr(self.config.eas, "url", None)
         timeout = 5
 
         response = await TokenUtil.__aio_http_post(

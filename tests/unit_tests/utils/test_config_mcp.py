@@ -55,16 +55,22 @@ class TestConfigMCP:
         assert servers.data["web_tools"]["transport"] == "streamable-http"
 
     def test_get_mcp_servers_without_servers(self, config_without_mcp):
-        """Test getting MCP servers when none exist."""
-        try:
-            servers = config_without_mcp.mcp.servers
-            assert False, "Should have raised KeyError"
-        except KeyError:
-            # Expected behavior when mcp section doesn't exist
-            pass
+        """Test getting MCP servers when the mcp section doesn't exist.
+
+        Config raises AttributeError for a missing top-level key (formerly
+        KeyError, which escaped through hasattr()/getattr(default)), so the
+        idiomatic optional-access tools work on the root config object."""
+        with pytest.raises(AttributeError, match="mcp"):
+            _ = config_without_mcp.mcp.servers
+        assert getattr(config_without_mcp, "mcp", None) is None
 
     def test_get_mcp_servers_partial_config(self):
-        """Test getting MCP servers with partial config."""
+        """Test getting MCP servers with a partial config (mcp section present
+        but no servers key).
+
+        ConfigWrapper is strict now: a missing key raises AttributeError
+        instead of silently returning None, so callers that treat servers as
+        optional must (and can) use getattr's default."""
         config_data = {
             "mcp": {
                 # No servers key
@@ -75,5 +81,6 @@ class TestConfigMCP:
             yaml.dump(config_data, f)
             config = Config(f.name)
 
-        servers = config.mcp.servers
-        assert servers is None
+        with pytest.raises(AttributeError, match="servers"):
+            _ = config.mcp.servers
+        assert getattr(config.mcp, "servers", None) is None

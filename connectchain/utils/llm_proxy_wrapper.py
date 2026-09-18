@@ -11,11 +11,17 @@
 # the License.
 """Proxied LLM Utilities"""
 import functools
+import logging
 from typing import Any, Callable, List, Optional
 
-from langchain.llms import BaseLLM
+# BaseLLM only covers legacy completion models; all ConnectChain targets
+# (ChatOpenAI, ChatAnthropic, etc.) inherit from BaseChatModel, which shares
+# only the BaseLanguageModel base class.
+from langchain_core.language_models import BaseLanguageModel
 
 from .proxy_manager import ProxyConfig, ProxyManager
+
+logger = logging.getLogger(__name__)
 
 _llm_sync_methods_: List[str] = [
     "invoke",
@@ -50,7 +56,6 @@ def _sync_proxy_(func: Callable[..., Any], proxy_manager: ProxyManager) -> Calla
     def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         with proxy_manager.configure_proxy_sync():
             return func(self, *args, **kwargs)
-
     return wrapper
 
 
@@ -59,35 +64,42 @@ def _async_proxy_(func: Callable[..., Any], proxy_manager: ProxyManager) -> Call
     async def wrapper(self: Any, *args: Any, **kwargs: Any) -> Any:
         with proxy_manager.configure_proxy_async():
             return await func(self, *args, **kwargs)
-
     return wrapper
 
 
 def _wrap_method_(
-    mixin: ProxyManager, llm: BaseLLM, method_name: str, decorator: Callable[..., Any]
+    mixin: ProxyManager, llm: BaseLanguageModel, method_name: str, decorator: Callable[..., Any]
 ) -> None:
-    """Langchain misuses pydantic so we must be careful accessing attributes even when we know they exist.
-    For the same reason, we must 'force-feed' the decorated function back to the class instance by setting
-    directly on the instance __dict__ to avoid pydantic validation.
+    """Langchain misuses pydantic so we must be careful accessing attributes even when we know
+    they exist.  For the same reason, we must 'force-feed' the decorated function back to the
+    class instance by setting directly on the instance __dict__ to avoid pydantic validation.
 
-    Note: pydantic is a data validation framework and is not intended to be used as an architecture validation
-    tool; despite the fact that it is used as such in Langchain."""
-    if hasattr(llm, method_name):
-        try:
-            func = getattr(llm, method_name)
-        except ValueError:
+    Note: pydantic is a data validation framework and is not intended to be used as an
+    architecture validation tool; despite the fact that it is used as such in Langchain."""
+    try:
+        if not hasattr(llm, method_name):
             return
-        wrapped_func = decorator(func, mixin)
-        llm.__dict__[method_name] = wrapped_func
+        func = getattr(llm, method_name)
+    except ValueError:
+        # hasattr()/getattr() can both trigger the same pydantic misbehavior this
+        # function's docstring warns about; either one raising means "skip it" --
+        # but say so: a silently unwrapped method means traffic bypasses the
+        # configured proxy with no visible trace otherwise.
+        logger.warning(
+            "Could not proxy-wrap method '%s' on %s (attribute access raised ValueError); "
+            "calls through this method will NOT use the configured proxy.",
+            method_name,
+            type(llm).__name__,
+        )
+        return
+    wrapped_func = decorator(func, mixin)
+    llm.__dict__[method_name] = wrapped_func
 
 
-def wrap_llm_with_proxy(llm: BaseLLM, proxy_config: Optional[ProxyConfig]) -> None:
+def wrap_llm_with_proxy(llm: BaseLanguageModel, proxy_config: Optional[ProxyConfig]) -> None:
     """Wrap an LLM instance with proxy functionality for network requests."""
-
     proxy_mixin = ProxyManager(proxy_config)
-
     decorator_pairs = [(_llm_sync_methods_, _sync_proxy_), (_llm_async_methods_, _async_proxy_)]
-
     for methods, decorator in decorator_pairs:
         for wrap_method_name in methods:
             _wrap_method_(proxy_mixin, llm, wrap_method_name, decorator)

@@ -83,7 +83,9 @@ class LCELRetry(Runnable):
     # pylint: disable=W0622, W0221 # LangChain overrode input
     def invoke(self, input: Input, config: Optional[RunnableConfig] = None, **kwargs: Any) -> Any:
         return base_retry(
-            **self._get_kwargs_(self.runnable.invoke, kwargs={"input": input, "config": config})
+            **self._get_kwargs_(
+                self.runnable.invoke, kwargs={"input": input, "config": config, **kwargs}
+            )
         )
 
     # pylint: disable=W0622 # LangChain overrode input

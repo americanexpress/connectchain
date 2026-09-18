@@ -10,11 +10,14 @@
 # or implied. See the License for the specific language governing permissions and limitations under
 # the License.
 """Unit testing for llm proxy wrapping utilities"""
+
 import asyncio
 import unittest
 from unittest.mock import Mock, patch
 
-from .setup_utils import get_mock_ctx_manager
+from langchain_core.language_models import BaseChatModel, BaseLanguageModel
+from langchain_openai import ChatOpenAI
+
 from connectchain.utils.llm_proxy_wrapper import (
     _async_proxy_,
     _llm_async_methods_,
@@ -24,6 +27,8 @@ from connectchain.utils.llm_proxy_wrapper import (
     wrap_llm_with_proxy,
 )
 from connectchain.utils.proxy_manager import ProxyManager
+
+from .setup_utils import get_mock_ctx_manager
 
 
 class MockLLM:
@@ -103,3 +108,16 @@ class TestProxyWrapping(unittest.TestCase):
                 self.assertIs(decorator, _async_proxy_)
             else:
                 self.fail(f"Unexpected method name {method_name}")
+
+    def test_wrapping_accepts_base_chat_model(self):
+        """BUG-5 regression: every real ConnectChain target (ChatOpenAI, etc.) is a
+        BaseChatModel, which shares only BaseLanguageModel with BaseLLM — not BaseLLM
+        itself. Before the fix the type hint claimed BaseLLM, which BaseChatModel
+        instances are not, mis-describing the actual accepted type. This confirms a
+        real BaseChatModel wraps successfully and satisfies the corrected annotation."""
+        chat_model = ChatOpenAI(model="gpt-3.5-turbo", openai_api_key="test-key")
+        self.assertIsInstance(chat_model, BaseChatModel)
+        self.assertIsInstance(chat_model, BaseLanguageModel)
+        # Should not raise: wrap_llm_with_proxy's signature now accepts BaseLanguageModel
+        wrap_llm_with_proxy(chat_model, proxy_config=None)
+        self.assertTrue(hasattr(chat_model, "invoke"))
