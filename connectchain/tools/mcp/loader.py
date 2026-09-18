@@ -40,8 +40,9 @@ class MCPToolLoader:
             )
             return []
 
-        # Filter servers if specific names requested
-        if server_names:
+        # Filter servers if specific names requested. `is not None` (not truthiness) so an
+        # explicit empty list means "connect to zero servers", not "no filter requested".
+        if server_names is not None:
             servers = {k: v for k, v in servers.items() if k in server_names}
 
         # Pass server configs directly to MultiServerMCPClient

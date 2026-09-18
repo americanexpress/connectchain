@@ -18,13 +18,15 @@ asynchronous invocation, error handling, and tool result aggregation."""
 
 import asyncio
 import logging
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional
 
-from langchain.schema import AIMessage
 from langchain.schema.runnable import Runnable, RunnableConfig
 from langchain.tools import BaseTool
+from langchain_core.messages import BaseMessage
 
 from ...lcel import model
+
+logger = logging.getLogger(__name__)
 
 
 class MCPToolAgent(Runnable):  # pylint: disable=redefined-builtin
@@ -36,7 +38,15 @@ class MCPToolAgent(Runnable):  # pylint: disable=redefined-builtin
 
     def __init__(self, model_id: str, tools: List[BaseTool]):
         self.model_id = model_id
-        self.tools = {tool.name: tool for tool in tools}
+        self.tools: Dict[str, BaseTool] = {}
+        for tool in tools:
+            if tool.name in self.tools:
+                logger.warning(
+                    "Duplicate tool name '%s' from multiple servers; the later one "
+                    "overrides the earlier one.",
+                    tool.name,
+                )
+            self.tools[tool.name] = tool
 
     async def ainvoke(
         self,
@@ -49,32 +59,52 @@ class MCPToolAgent(Runnable):  # pylint: disable=redefined-builtin
         if hasattr(llm, "bind_tools"):
             llm = llm.bind_tools(list(self.tools.values()))
 
-        response = await llm.ainvoke(input, config)
+        # Forward **kwargs so caller-supplied run options (e.g. `stop`, provider-specific
+        # parameters) actually reach the underlying model instead of being silently dropped.
+        response = await llm.ainvoke(input, config, **kwargs)
+
+        # Extract the content once -- it's the same expression on every return path, and
+        # duplicating it at each return site invites the two copies drifting apart.
+        content = response.content if isinstance(response, BaseMessage) else str(response)
 
         if not hasattr(response, "tool_calls") or not response.tool_calls:
-            return response
+            # Match the declared `-> dict` contract on every path, not just when tools
+            # are requested -- otherwise callers can't uniformly do result["content"].
+            return {"content": content, "tool_results": []}
 
-        results = []
+        async def execute_tool(tool_name: str, tool_args: Any) -> dict:
+            """Run a single tool, mapping any failure to an error entry so one failing
+            tool never affects its siblings."""
+            try:
+                result = await self.tools[tool_name].ainvoke(tool_args)
+                return {"tool": tool_name, "result": result}
+            except Exception as e:  # pylint: disable=broad-except
+                logger.warning(
+                    "Tool '%s' execution failed: %s", tool_name, e
+                )
+                return {"tool": tool_name, "error": str(e)}
+
+        pending = []
         for tool_call in response.tool_calls:
             tool_name = tool_call.get("name") if isinstance(tool_call, dict) else tool_call.name
             tool_args = tool_call.get("args", {}) if isinstance(tool_call, dict) else tool_call.args
 
             if tool_name in self.tools:
-                try:
-                    result = await self.tools[tool_name].ainvoke(tool_args)
-                    results.append({"tool": tool_name, "result": result})
-                except Exception as e:  # pylint: disable=broad-except
-                    logging.getLogger(__name__).warning(
-                        "Tool '%s' execution failed: %s", tool_name, e
-                    )
-                    results.append({"tool": tool_name, "error": str(e)})
+                pending.append(execute_tool(tool_name, tool_args))
             else:
-                logging.getLogger(__name__).warning("Unknown tool requested: %s", tool_name)
+                # Unknown tools only produce a warning; they contribute no entry to
+                # tool_results (preserving the long-standing behavior).
+                logger.warning("Unknown tool requested: %s", tool_name)
 
-        return {
-            "content": response.content if isinstance(response, AIMessage) else str(response),
-            "tool_results": results,
-        }
+        # Run the requested tools concurrently rather than awaiting them one by one.
+        # gather() is safe here because the tool calls are independent of each other
+        # and MCP sessions handle concurrent calls; per-tool failures are already
+        # absorbed inside execute_tool, so one slow or failing tool cannot affect the
+        # rest. gather() also preserves ordering: results arrive in the same order as
+        # response.tool_calls (minus unknown tools), regardless of completion order.
+        results = list(await asyncio.gather(*pending))
+
+        return {"content": content, "tool_results": results}
 
     def invoke(
         self,

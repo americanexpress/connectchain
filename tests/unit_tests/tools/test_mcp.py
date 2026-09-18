@@ -12,6 +12,7 @@
 
 """Tests for MCP tools."""
 
+import asyncio
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -57,7 +58,8 @@ class TestMCPToolAgent:
             agent = MCPToolAgent("1", mock_tools)
             result = await agent.ainvoke({"query": "What is 2+2?"})
 
-            assert result.content == "The answer is 42"
+            assert result["content"] == "The answer is 42"
+            assert result["tool_results"] == []
             assert mock_llm.bind_tools.called
 
     @pytest.mark.asyncio
@@ -126,6 +128,80 @@ class TestMCPToolAgent:
 
             assert result["tool_results"][0]["tool"] == "add"
             assert result["tool_results"][0]["error"] == "Tool failed"
+
+    @pytest.mark.asyncio
+    async def test_tool_calls_run_concurrently_in_order(self, mock_tools):
+        """Regression test: independent tool calls must run concurrently, and results
+        must stay in tool_calls order even when the first tool finishes last.
+
+        Previously each tool was awaited sequentially in a for loop, so a slow tool
+        blocked every tool after it. The rendezvous below is only satisfiable under
+        concurrent execution: 'add' (requested first) refuses to finish until
+        'multiply' (requested second) has started. Sequential execution would never
+        start 'multiply' while 'add' is pending, so 'add' would time out and surface
+        as an error entry instead of a result. asyncio.Event keeps this deterministic
+        -- no wall-clock sleeps or timing races."""
+        started = {"add": asyncio.Event(), "multiply": asyncio.Event()}
+
+        async def slow_add(_args):
+            started["add"].set()
+            # Completes only once 'multiply' has started -- proof both tools were
+            # in flight at the same time. The timeout is a safety net so a regression
+            # to sequential execution fails the assertions below instead of hanging.
+            await asyncio.wait_for(started["multiply"].wait(), timeout=2)
+            return 10
+
+        async def fast_multiply(_args):
+            started["multiply"].set()
+            return 20
+
+        mock_tools[0].ainvoke = AsyncMock(side_effect=slow_add)
+        mock_tools[1].ainvoke = AsyncMock(side_effect=fast_multiply)
+
+        with patch("connectchain.tools.mcp.agent.model") as mock_model:
+            mock_llm = AsyncMock()
+            mock_response = AIMessage(
+                content="I'll calculate that for you.",
+                tool_calls=[
+                    {"id": "1", "name": "add", "args": {"a": 5, "b": 5}},
+                    {"id": "2", "name": "multiply", "args": {"a": 2, "b": 10}},
+                ],
+            )
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+            mock_llm.bind_tools = Mock(return_value=mock_llm)
+            mock_model.return_value = mock_llm
+
+            agent = MCPToolAgent("1", mock_tools)
+            result = await agent.ainvoke({"query": "Calculate 5+5 and 2*10"})
+
+            # Both tools ran (and overlapped -- otherwise slow_add couldn't return 10).
+            assert started["add"].is_set()
+            assert started["multiply"].is_set()
+            # Ordering matches tool_calls order even though 'add' finished last.
+            assert result["tool_results"] == [
+                {"tool": "add", "result": 10},
+                {"tool": "multiply", "result": 20},
+            ]
+
+    @pytest.mark.asyncio
+    async def test_kwargs_forwarded_to_llm(self, mock_tools):
+        """Regression test: caller-supplied kwargs must reach the underlying llm.ainvoke.
+
+        Previously ainvoke accepted **kwargs but never forwarded them, so run
+        options (e.g. `stop`) were silently dropped."""
+        with patch("connectchain.tools.mcp.agent.model") as mock_model:
+            mock_llm = AsyncMock()
+            mock_response = AIMessage(content="The answer is 42")
+            mock_llm.ainvoke = AsyncMock(return_value=mock_response)
+            mock_llm.bind_tools = Mock(return_value=mock_llm)
+            mock_model.return_value = mock_llm
+
+            agent = MCPToolAgent("1", mock_tools)
+            await agent.ainvoke({"query": "What is 2+2?"}, None, stop=["\n"], temperature=0.1)
+
+            mock_llm.ainvoke.assert_awaited_once_with(
+                {"query": "What is 2+2?"}, None, stop=["\n"], temperature=0.1
+            )
 
     def test_invoke_runtime_error(self, mock_tools):
         """Test synchronous invoke raises RuntimeError with helpful message."""
